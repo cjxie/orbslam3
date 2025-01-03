@@ -104,3 +104,4 @@ install/
 log/
 *.code-workspace
 evaluation/
+Vocabulary/*.txt
