@@ -60,11 +60,13 @@ void Optimizer::GlobalBundleAdjustemnt(Map* pMap, int nIterations, bool* pbStopF
 void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<MapPoint *> &vpMP,
                                  int nIterations, bool* pbStopFlag, const unsigned long nLoopKF, const bool bRobust)
 {
+    // store unoptimized MP
     vector<bool> vbNotIncludedMP;
     vbNotIncludedMP.resize(vpMP.size());
 
     Map* pMap = vpKFs[0]->GetMap();
-
+    
+    // Step 1: initialize optimizer
     g2o::SparseOptimizer optimizer;
     g2o::BlockSolver_6_3::LinearSolverType * linearSolver;
 
@@ -76,13 +78,16 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
     optimizer.setAlgorithm(solver);
     optimizer.setVerbose(false);
 
+    // if a stop request happens, the optimizer will be stop immediately
     if(pbStopFlag)
         optimizer.setForceStopFlag(pbStopFlag);
 
     long unsigned int maxKFid = 0;
-
+    
+    // Step 2: Define optimization targets, edges and vertices
     const int nExpectedSize = (vpKFs.size())*vpMP.size();
-
+    
+    //  store all edges and vertexs connected by them
     vector<ORB_SLAM3::EdgeSE3ProjectXYZ*> vpEdgesMono;
     vpEdgesMono.reserve(nExpectedSize);
 
@@ -111,8 +116,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
     vpMapPointEdgeStereo.reserve(nExpectedSize);
 
 
-    // Set KeyFrame vertices
-
+    // Step 2.1:Set KeyFrame vertices
     for(size_t i=0; i<vpKFs.size(); i++)
     {
         KeyFrame* pKF = vpKFs[i];
@@ -128,10 +132,12 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             maxKFid=pKF->mnId;
     }
 
+    // The values 5.99 (2D) and 7.815 (3D) 
+    // come from the χ² distribution table at p=0.95 with df=2 and df=3 respectively.
     const float thHuber2D = sqrt(5.99);
     const float thHuber3D = sqrt(7.815);
 
-    // Set MapPoint vertices
+    // Step 2.2:Set MapPoint vertices
     for(size_t i=0; i<vpMP.size(); i++)
     {
         MapPoint* pMP = vpMP[i];
@@ -139,15 +145,19 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             continue;
         g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();
         vPoint->setEstimate(pMP->GetWorldPos().cast<double>());
+        
+        // the id mapPoint's id should be right behind maxKFid
         const int id = pMP->mnId+maxKFid+1;
         vPoint->setId(id);
+        // ** must set marginalization to be true, otherwise g2o wil fail to perform BA
         vPoint->setMarginalized(true);
         optimizer.addVertex(vPoint);
 
-       const map<KeyFrame*,tuple<int,int>> observations = pMP->GetObservations();
+        // get all observations for this MP
+        const map<KeyFrame*,tuple<int,int>> observations = pMP->GetObservations();
 
         int nEdges = 0;
-        //SET EDGES
+        // Step 3: SET EDGES
         for(map<KeyFrame*,tuple<int,int>>::const_iterator mit=observations.begin(); mit!=observations.end(); mit++)
         {
             KeyFrame* pKF = mit->first;
@@ -159,21 +169,29 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
 
             const int leftIndex = get<0>(mit->second);
 
+            // mono observation
             if(leftIndex != -1 && pKF->mvuRight[get<0>(mit->second)]<0)
             {
                 const cv::KeyPoint &kpUn = pKF->mvKeysUn[leftIndex];
 
+                // Need to convert from cv::Point to Eigen::Matrix for g2o compability
                 Eigen::Matrix<double,2,1> obs;
                 obs << kpUn.pt.x, kpUn.pt.y;
 
+                // create the edge
                 ORB_SLAM3::EdgeSE3ProjectXYZ* e = new ORB_SLAM3::EdgeSE3ProjectXYZ();
 
+                // vertex 0 is MP, vertex 1 is KF pose, obs is pixel location in KF
                 e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(id)));
                 e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(pKF->mnId)));
                 e->setMeasurement(obs);
+
+                // for information matrix, the higher the level the feature extracted from, the higher the confidence is
                 const float &invSigma2 = pKF->mvInvLevelSigma2[kpUn.octave];
+                // the informatrion matrix for this kind of edges is 2x2 because the obs is 2D
                 e->setInformation(Eigen::Matrix2d::Identity()*invSigma2);
 
+                // use robust kernel function
                 if(bRobust)
                 {
                     g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
@@ -181,8 +199,10 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
                     rk->setDelta(thHuber2D);
                 }
 
+                // set cam intrinsic
                 e->pCamera = pKF->mpCamera;
 
+                // add edge to optimizer
                 optimizer.addEdge(e);
 
                 vpEdgesMono.push_back(e);
@@ -192,7 +212,8 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             else if(leftIndex != -1 && pKF->mvuRight[leftIndex] >= 0) //Stereo observation
             {
                 const cv::KeyPoint &kpUn = pKF->mvKeysUn[leftIndex];
-
+                
+                // the obs is u,v in left frame and u in right frame
                 Eigen::Matrix<double,3,1> obs;
                 const float kp_ur = pKF->mvuRight[get<0>(mit->second)];
                 obs << kpUn.pt.x, kpUn.pt.y, kp_ur;
@@ -262,7 +283,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         }
 
 
-
+        // if none of KFs observed this MP, then remove this vertex from optimizer
         if(nEdges==0)
         {
             optimizer.removeVertex(vPoint);
@@ -274,13 +295,13 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         }
     }
 
-    // Optimize!
+    // Step 4: Optimize!
     optimizer.setVerbose(false);
     optimizer.initializeOptimization();
     optimizer.optimize(nIterations);
     Verbose::PrintMess("BA: End of the optimization", Verbose::VERBOSITY_NORMAL);
 
-    // Recover optimized data
+    // Step 5: Recover optimized data
     //Keyframes
     for(size_t i=0; i<vpKFs.size(); i++)
     {
