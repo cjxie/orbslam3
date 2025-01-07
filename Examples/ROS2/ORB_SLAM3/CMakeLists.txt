@@ -12,7 +12,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(Pangolin REQUIRED)
+# find_package(Pangolin REQUIRED)
 
 include_directories(
    ${PROJECT_SOURCE_DIR}
@@ -20,13 +20,13 @@ include_directories(
    ${PROJECT_SOURCE_DIR}/../../../include
    ${PROJECT_SOURCE_DIR}/../../../include/CameraModels
    ${PROJECT_SOURCE_DIR}/../../../Thirdparty/Sophus
-   ${Pangolin_INCLUDE_DIRS}
+   # ${Pangolin_INCLUDE_DIRS}
 )
 
 set(LIBS 
    ${OpenCV_LIBS} 
    ${EIGEN3_LIBS}
-   ${Pangolin_LIBRARIES}
+   # ${Pangolin_LIBRARIES}
    ${PROJECT_SOURCE_DIR}/../../../Thirdparty/DBoW2/lib/libDBoW2.so
    ${PROJECT_SOURCE_DIR}/../../../Thirdparty/g2o/lib/libg2o.so
    ${PROJECT_SOURCE_DIR}/../../../lib/libORB_SLAM3.so

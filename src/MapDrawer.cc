@@ -395,47 +395,47 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph, const b
     }
 }
 
-void MapDrawer::DrawCurrentCamera(pangolin::OpenGlMatrix &Twc)
-{
-    const float &w = mCameraSize;
-    const float h = w*0.75;
-    const float z = w*0.6;
+// void MapDrawer::DrawCurrentCamera(pangolin::OpenGlMatrix &Twc)
+// {
+//     const float &w = mCameraSize;
+//     const float h = w*0.75;
+//     const float z = w*0.6;
 
-    glPushMatrix();
+//     glPushMatrix();
 
-#ifdef HAVE_GLES
-        glMultMatrixf(Twc.m);
-#else
-        glMultMatrixd(Twc.m);
-#endif
+// #ifdef HAVE_GLES
+//         glMultMatrixf(Twc.m);
+// #else
+//         glMultMatrixd(Twc.m);
+// #endif
 
-    glLineWidth(mCameraLineWidth);
-    glColor3f(0.0f,1.0f,0.0f);
-    glBegin(GL_LINES);
-    glVertex3f(0,0,0);
-    glVertex3f(w,h,z);
-    glVertex3f(0,0,0);
-    glVertex3f(w,-h,z);
-    glVertex3f(0,0,0);
-    glVertex3f(-w,-h,z);
-    glVertex3f(0,0,0);
-    glVertex3f(-w,h,z);
+//     glLineWidth(mCameraLineWidth);
+//     glColor3f(0.0f,1.0f,0.0f);
+//     glBegin(GL_LINES);
+//     glVertex3f(0,0,0);
+//     glVertex3f(w,h,z);
+//     glVertex3f(0,0,0);
+//     glVertex3f(w,-h,z);
+//     glVertex3f(0,0,0);
+//     glVertex3f(-w,-h,z);
+//     glVertex3f(0,0,0);
+//     glVertex3f(-w,h,z);
 
-    glVertex3f(w,h,z);
-    glVertex3f(w,-h,z);
+//     glVertex3f(w,h,z);
+//     glVertex3f(w,-h,z);
 
-    glVertex3f(-w,h,z);
-    glVertex3f(-w,-h,z);
+//     glVertex3f(-w,h,z);
+//     glVertex3f(-w,-h,z);
 
-    glVertex3f(-w,h,z);
-    glVertex3f(w,h,z);
+//     glVertex3f(-w,h,z);
+//     glVertex3f(w,h,z);
 
-    glVertex3f(-w,-h,z);
-    glVertex3f(w,-h,z);
-    glEnd();
+//     glVertex3f(-w,-h,z);
+//     glVertex3f(w,-h,z);
+//     glEnd();
 
-    glPopMatrix();
-}
+//     glPopMatrix();
+// }
 
 
 void MapDrawer::SetCurrentCameraPose(const Sophus::SE3f &Tcw)
@@ -444,24 +444,24 @@ void MapDrawer::SetCurrentCameraPose(const Sophus::SE3f &Tcw)
     mCameraPose = Tcw.inverse();
 }
 
-void MapDrawer::GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M, pangolin::OpenGlMatrix &MOw)
-{
-    Eigen::Matrix4f Twc;
-    {
-        unique_lock<mutex> lock(mMutexCamera);
-        Twc = mCameraPose.matrix();
-    }
+// void MapDrawer::GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M, pangolin::OpenGlMatrix &MOw)
+// {
+//     Eigen::Matrix4f Twc;
+//     {
+//         unique_lock<mutex> lock(mMutexCamera);
+//         Twc = mCameraPose.matrix();
+//     }
 
-    for (int i = 0; i<4; i++) {
-        M.m[4*i] = Twc(0,i);
-        M.m[4*i+1] = Twc(1,i);
-        M.m[4*i+2] = Twc(2,i);
-        M.m[4*i+3] = Twc(3,i);
-    }
+//     for (int i = 0; i<4; i++) {
+//         M.m[4*i] = Twc(0,i);
+//         M.m[4*i+1] = Twc(1,i);
+//         M.m[4*i+2] = Twc(2,i);
+//         M.m[4*i+3] = Twc(3,i);
+//     }
 
-    MOw.SetIdentity();
-    MOw.m[12] = Twc(0,3);
-    MOw.m[13] = Twc(1,3);
-    MOw.m[14] = Twc(2,3);
-}
+//     MOw.SetIdentity();
+//     MOw.m[12] = Twc(0,3);
+//     MOw.m[13] = Twc(1,3);
+//     MOw.m[14] = Twc(2,3);
+// }
 } //namespace ORB_SLAM
