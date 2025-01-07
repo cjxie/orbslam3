@@ -33,6 +33,8 @@
 
 #include "../DUtils/Random.h"
 
+#include "../VocabularyBinary.hpp"
+
 using namespace std;
 
 namespace DBoW2 {
@@ -245,6 +247,12 @@ public:
    * @param filename
    */
   void saveToTextFile(const std::string &filename) const;  
+
+  /**
+   * Loads the vocabulary from a binary file
+   * @param filename
+   */
+  bool loadFromBinaryFile(const std::string &filename);
 
   /**
    * Saves the vocabulary into a file
@@ -1341,7 +1349,7 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
     f.open(filename.c_str());
 	
     if(f.eof())
-	return false;
+	    return false;
 
     m_words.clear();
     m_nodes.clear();
@@ -1359,7 +1367,7 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
     if(m_k<0 || m_k>20 || m_L<1 || m_L>10 || n1<0 || n1>5 || n2<0 || n2>3)
     {
         std::cerr << "Vocabulary loading failure: This is not a correct text file!" << endl;
-	return false;
+	      return false;
     }
     
     m_scoring = (ScoringType)n1;
@@ -1384,7 +1392,7 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
 
         int nid = m_nodes.size();
         m_nodes.resize(m_nodes.size()+1);
-	m_nodes[nid].id = nid;
+	      m_nodes[nid].id = nid;
 	
         int pid ;
         ssnode >> pid;
@@ -1400,7 +1408,7 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
             string sElement;
             ssnode >> sElement;
             ssd << sElement << " ";
-	}
+	      }
         F::fromString(m_nodes[nid].descriptor, ssd.str());
 
         ssnode >> m_nodes[nid].weight;
@@ -1447,6 +1455,130 @@ void TemplatedVocabulary<TDescriptor,F>::saveToTextFile(const std::string &filen
 
     f.close();
 }
+
+// template<class TDescriptor, class F>
+// bool TemplatedVocabulary<TDescriptor, F>::loadFromBinaryFile(const std::string &filename)
+// {
+//   m_words.clear();
+//   m_nodes.clear();
+//   std::ifstream vocabulary_bin(filename, std::ios::binary);
+//   if (!vocabulary_bin.is_open())
+//   {
+//     std::cerr << std::string("Could not open file") + filename << std::endl;
+//     return false;
+//   }
+    
+//   vocabulary_bin.read((char*)&m_k, sizeof(m_k));
+//   vocabulary_bin.read((char*)&m_L, sizeof(m_L));
+//   vocabulary_bin.read((char*)&m_weighting, sizeof(m_weighting));
+//   vocabulary_bin.read((char*)&m_scoring, sizeof(m_scoring));
+//   createScoringObject();
+//   uint64_t vec_size = 0;
+//   vocabulary_bin.read((char*)&vec_size, sizeof(uint64_t));
+//   m_nodes.resize(vec_size);
+//   m_words.reserve(pow((double)m_k, (double)m_L + 1));
+
+//   int nid = 0;
+//   int wid = 0;
+//   for (auto & node : m_nodes)
+//   {
+//       vocabulary_bin.read((char*)&node.id, sizeof(node.id));
+//       vocabulary_bin.read((char*)&node.weight, sizeof(node.weight));
+//       vocabulary_bin.read((char*)&node.parent, sizeof(node.parent));
+//       vocabulary_bin.read((char*)&node.word_id, sizeof(node.word_id));
+//       if (nid > 0)
+//       {
+//           node.descriptor.create(1, 32, CV_8UC1);
+//           vocabulary_bin.read((char*)node.descriptor.ptr(), 32);
+//       }
+//       vec_size = 0;
+//       vocabulary_bin.read((char*)&vec_size, sizeof(uint64_t));
+//       if (vec_size > 0)
+//       {
+//           node.children.resize(vec_size);
+//           vocabulary_bin.read((char*)node.children.data(), sizeof(node.children[0]) * vec_size);
+//       }
+//       ++nid;
+//       if (node.weight != 0)
+//       {
+//           m_words.resize(node.word_id + 1);
+//           m_words[node.word_id] = &node;
+//       }
+//   }
+//   vocabulary_bin.close();
+//   return true;
+// }
+
+template<class TDescriptor, class F>
+bool TemplatedVocabulary<TDescriptor, F>::loadFromBinaryFile(const std::string &filename)
+{
+    m_words.clear();
+    m_nodes.clear();
+    
+    // Use structured data reading
+    std::ifstream vocabulary_bin(filename, std::ios::binary);
+    if (!vocabulary_bin.is_open()) {
+        std::cerr << "Could not open file: " << filename << std::endl;
+        return false;
+    }
+
+    try {
+        VINSLoop::Vocabulary voc;
+        voc.deserialize(vocabulary_bin);
+        vocabulary_bin.close();
+
+        // Now copy the data from voc to our vocabulary structure
+        m_k = voc.k;
+        m_L = voc.L;
+        m_scoring = (ScoringType)voc.scoringType;
+        m_weighting = (WeightingType)voc.weightingType;
+
+        createScoringObject();
+
+        // Initialize nodes
+        m_nodes.resize(voc.nNodes + 1);  // +1 for root
+        m_nodes[0].id = 0;               // Set root
+
+        // Process all nodes
+        for(unsigned int i = 0; i < voc.nNodes; ++i)
+        {
+            NodeId nid = voc.nodes[i].nodeId;
+            NodeId pid = voc.nodes[i].parentId;
+            WordValue weight = voc.nodes[i].weight;
+
+            m_nodes[nid].id = nid;
+            m_nodes[nid].parent = pid;
+            m_nodes[nid].weight = weight;
+            m_nodes[pid].children.push_back(nid);
+
+            // Copy descriptor (assuming it's using OpenCV Mat)
+            if(nid > 0) {  // Skip root
+                m_nodes[nid].descriptor.create(1, 32, CV_8UC1);
+                memcpy(m_nodes[nid].descriptor.ptr(), voc.nodes[i].descriptor, 32);
+            }
+        }
+
+        // Process words
+        m_words.resize(voc.nWords);
+        for(unsigned int i = 0; i < voc.nWords; ++i)
+        {
+            NodeId wid = voc.words[i].wordId;
+            NodeId nid = voc.words[i].nodeId;
+
+            m_nodes[nid].word_id = wid;
+            m_words[wid] = &m_nodes[nid];
+        }
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error loading vocabulary: " << e.what() << std::endl;
+        m_words.clear();
+        m_nodes.clear();
+        return false;
+    }
+
+    return true;
+}
+
 
 // --------------------------------------------------------------------------
 

@@ -2320,6 +2320,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
             Verbose::PrintMess("Global Bundle Adjustment finished", Verbose::VERBOSITY_NORMAL);
             Verbose::PrintMess("Updating map ...", Verbose::VERBOSITY_NORMAL);
 
+            // Stop adding new keyframes into localMapper
             mpLocalMapper->RequestStop();
             // Wait until Local Mapping has effectively stopped
 

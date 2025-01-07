@@ -123,7 +123,18 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
 
         mpVocabulary = new ORBVocabulary();
-        bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
+        if (strVocFile.length() < 4 )
+        {
+            std::cerr << "Path " << strVocFile << " is invalid" << std::endl;
+            exit(-1);
+        }
+
+        bool bVocLoad = false;
+        if (strVocFile.substr(strVocFile.length()-4) == ".txt")
+            bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
+        else if (strVocFile.substr(strVocFile.length()-4) == ".bin")
+            bVocLoad = mpVocabulary->loadFromBinaryFile(strVocFile);
+
         if(!bVocLoad)
         {
             cerr << "Wrong path to vocabulary. " << endl;

@@ -120,4 +120,4 @@ Viewer.ViewpointZ: -3.5
 Viewer.ViewpointF: 500.0
 Viewer.imageViewScale: 1.0
 
-loopClosing: 0
+loopClosing: 1
