@@ -206,19 +206,19 @@ void Viewer::Run()
     // Ow.SetIdentity();
     // cv::namedWindow("ORB-SLAM3: Current Frame");
 
-    bool bFollow = true;
-    bool bLocalizationMode = false;
-    bool bStepByStep = false;
-    bool bCameraView = true;
+    // bool bFollow = true;
+    // bool bLocalizationMode = false;
+    // bool bStepByStep = false;
+    // bool bCameraView = true;
 
-    if(mpTracker->mSensor == mpSystem->MONOCULAR || mpTracker->mSensor == mpSystem->STEREO || mpTracker->mSensor == mpSystem->RGBD)
-    {
-        menuShowGraph = true;
-    }
+    // if(mpTracker->mSensor == mpSystem->MONOCULAR || mpTracker->mSensor == mpSystem->STEREO || mpTracker->mSensor == mpSystem->RGBD)
+    // {
+    //     menuShowGraph = true;
+    // }
 
-    float trackedImageScale = mpTracker->GetImageScale();
+    // float trackedImageScale = mpTracker->GetImageScale();
 
-    cout << "Starting the Viewer" << endl;
+    // cout << "Starting the Viewer" << endl;
     // while(1)
     // {
     //     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
