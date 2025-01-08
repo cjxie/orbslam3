@@ -133,7 +133,7 @@ void LoopClosing::Run()
                         Sophus::SE3d mTcw = mpCurrentKF->GetPose().cast<double>();
                         g2o::Sim3 gScw1(mTcw.unit_quaternion(), mTcw.translation(), 1.0);
                         g2o::Sim3 gSw2c = mg2oMergeSlw.inverse();
-                        g2o::Sim3 gSw1m = mg2oMergeSlw;
+                        // g2o::Sim3 gSw1m = mg2oMergeSlw;
 
                         mSold_new = (gSw2c * gScw1);
 
@@ -205,6 +205,7 @@ void LoopClosing::Run()
                     mnMergeNumNotFound = 0;
                     mbMergeDetected = false;
 
+                    // if both Loop and Merge are detected, only merge the maps
                     if(mbLoopDetected)
                     {
                         // Reset Loop variables
@@ -345,13 +346,14 @@ bool LoopClosing::NewDetectCommonRegions()
         return false;
     }
 
-    if(mpTracker->mSensor == System::STEREO && mpLastMap->GetAllKeyFrames().size() < 5) //12
-    {
-        // cout << "LoopClousure: Stereo KF inserted without check: " << mpCurrentKF->mnId << endl;
-        mpKeyFrameDB->add(mpCurrentKF);
-        mpCurrentKF->SetErase();
-        return false;
-    }
+    // (cj) Is this condition redundant?
+    // if(mpTracker->mSensor == System::STEREO && mpLastMap->GetAllKeyFrames().size() < 5) //12
+    // {
+    //     // cout << "LoopClousure: Stereo KF inserted without check: " << mpCurrentKF->mnId << endl;
+    //     mpKeyFrameDB->add(mpCurrentKF);
+    //     mpCurrentKF->SetErase();
+    //     return false;
+    // }
 
     if(mpLastMap->GetAllKeyFrames().size() < 12)
     {
@@ -380,6 +382,7 @@ bool LoopClosing::NewDetectCommonRegions()
         g2o::Sim3 gScw = gScl * mg2oLoopSlw;
         int numProjMatches = 0;
         vector<MapPoint*> vpMatchedMPs;
+        // ** important functions
         bool bCommonRegion = DetectAndReffineSim3FromLastKF(mpCurrentKF, mpLoopMatchedKF, gScw, numProjMatches, mvpLoopMPs, vpMatchedMPs);
         if(bCommonRegion)
         {
@@ -406,6 +409,7 @@ bool LoopClosing::NewDetectCommonRegions()
             bLoopDetectedInKF = false;
 
             mnLoopNumNotFound++;
+            // if there is no loop detected in two consecutive frames, reset related variables
             if(mnLoopNumNotFound >= 2)
             {
                 mpLoopLastCurrentKF->SetErase();
@@ -467,7 +471,8 @@ bool LoopClosing::NewDetectCommonRegions()
 
         double timeEstSim3 = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndEstSim3_1 - time_StartEstSim3_1).count();
 #endif
-
+    
+    // no need for further computation of BoW matching
     if(mbMergeDetected || mbLoopDetected)
     {
 #ifdef REGISTER_TIMES
@@ -2301,7 +2306,6 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
 #endif
 
     int idx =  mnFullBAIdx;
-    // Optimizer::GlobalBundleAdjustemnt(mpMap,10,&mbStopGBA,nLoopKF,false);
 
     // Update all MapPoints and KeyFrames
     // Local Mapping was active during BA, that means that there might be new keyframes
