@@ -71,6 +71,7 @@ void LocalMapping::Run()
         SetAcceptKeyFrames(false);
 
         // Check if there are keyframes in the queue
+        // ** As long as this condition is met, the main program of LocalMapping will be executed
         if(CheckNewKeyFrames() && !mbBadImu)
         {
 #ifdef REGISTER_TIMES
@@ -125,7 +126,7 @@ void LocalMapping::Run()
             {
                 if(mpAtlas->KeyFramesInMap()>2)
                 {
-
+                    // LBA
                     if(mbInertial && mpCurrentKeyFrame->GetMap()->isImuInitialized())
                     {
                         float dist = (mpCurrentKeyFrame->mPrevKF->GetCameraCenter() - mpCurrentKeyFrame->GetCameraCenter()).norm() +
@@ -135,18 +136,21 @@ void LocalMapping::Run()
                             mTinit += mpCurrentKeyFrame->mTimeStamp - mpCurrentKeyFrame->mPrevKF->mTimeStamp;
                         if(!mpCurrentKeyFrame->GetMap()->GetIniertialBA2())
                         {
+                            // ** (the choice of this condition is interesting) Visual-inertial initialization failed
+                            // After 10 s, the map won't be reset anymore?
                             if((mTinit<10.f) && (dist<0.02))
                             {
                                 std::cout << "\nmTinit: " << mTinit << " dist: " << dist << std::endl;
                                 cout << "Not enough motion for initializing. Reseting..." << endl;
                                 unique_lock<mutex> lock(mMutexReset);
+                                // Reset map
                                 mbResetRequestedActiveMap = true;
                                 mpMapToReset = mpCurrentKeyFrame->GetMap();
                                 mbBadImu = true;
                             }
                         }
 
-			 // mono > 75, other > 100
+			            // mono > 75, other > 100
                         bool bLarge = ((mpTracker->GetMatchesInliers()>75) && mbMonocular) ||
                                       ((mpTracker->GetMatchesInliers()>100) &&!mbMonocular);
                         Optimizer::LocalInertialBA(mpCurrentKeyFrame, &mbAbortBA,
@@ -157,6 +161,7 @@ void LocalMapping::Run()
                     }
                     else
                     {
+                        // do Visual-only LBA， when imu is used but is not ready yet
                         Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame, &mbAbortBA,
                                 mpCurrentKeyFrame->GetMap(),
                                 num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA);
@@ -235,6 +240,7 @@ void LocalMapping::Run()
                             }
                         }
 
+                        // the conditions are interesting. Need to look into it if time is available
                         // scale refinement
                         if (((mpAtlas->KeyFramesInMap())<=200) &&
                                 ((mTinit>25.0f && mTinit<25.5f)||
@@ -254,8 +260,8 @@ void LocalMapping::Run()
             vdLBASync_ms.push_back(timeKFCulling_ms);
             vdKFCullingSync_ms.push_back(timeKFCulling_ms);
 #endif
-
-            mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            if (mpLoopCloser)
+                mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
 
 #ifdef REGISTER_TIMES
             std::chrono::steady_clock::time_point time_EndLocalMap = std::chrono::steady_clock::now();
@@ -1027,11 +1033,11 @@ void LocalMapping::KeyFrameCulling()
             {
                 // Don't cull if:
                 // - Too few keyframes (<=Nd)
-	        // - Too close to current frame (within 2 frames)
+	            // - Too close to current frame (within 2 frames)
 
                 if (mpAtlas->KeyFramesInMap()<=Nd)
                     continue;
-		// this frame is too close to current keyframe to be removed
+		        // this frame is too close to current keyframe to be removed
                 if(pKF->mnId>(mpCurrentKeyFrame->mnId-2))
                     continue;
 

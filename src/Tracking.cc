@@ -421,102 +421,110 @@ void Tracking::PrintTimeStats()
     f << "KFs in map: " << pBestMap->GetAllKeyFrames().size() << std::endl;
     f << "MPs in map: " << pBestMap->GetAllMapPoints().size() << std::endl;
 
-    f << "---------------------------" << std::endl;
-    f << std::endl << "Place Recognition (mean$\\pm$std)" << std::endl;
-    std::cout << "---------------------------" << std::endl;
-    std::cout << std::endl << "Place Recognition (mean$\\pm$std)" << std::endl;
-    average = calcAverage(mpLoopClosing->vdDataQuery_ms);
-    deviation = calcDeviation(mpLoopClosing->vdDataQuery_ms, average);
-    f << "Database Query: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Database Query: " << average << "$\\pm$" << deviation << std::endl;
-    average = calcAverage(mpLoopClosing->vdEstSim3_ms);
-    deviation = calcDeviation(mpLoopClosing->vdEstSim3_ms, average);
-    f << "SE3 estimation: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "SE3 estimation: " << average << "$\\pm$" << deviation << std::endl;
-    average = calcAverage(mpLoopClosing->vdPRTotal_ms);
-    deviation = calcDeviation(mpLoopClosing->vdPRTotal_ms, average);
-    f << "Total Place Recognition: " << average << "$\\pm$" << deviation << std::endl << std::endl;
-    std::cout << "Total Place Recognition: " << average << "$\\pm$" << deviation << std::endl << std::endl;
+    if (mpLoopClosing)
+    {
+        f << "---------------------------" << std::endl;
+        f << std::endl << "Place Recognition (mean$\\pm$std)" << std::endl;
+        std::cout << "---------------------------" << std::endl;
+        std::cout << std::endl << "Place Recognition (mean$\\pm$std)" << std::endl;
+        average = calcAverage(mpLoopClosing->vdDataQuery_ms);
+        deviation = calcDeviation(mpLoopClosing->vdDataQuery_ms, average);
+        f << "Database Query: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Database Query: " << average << "$\\pm$" << deviation << std::endl;
+        average = calcAverage(mpLoopClosing->vdEstSim3_ms);
+        deviation = calcDeviation(mpLoopClosing->vdEstSim3_ms, average);
+        f << "SE3 estimation: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "SE3 estimation: " << average << "$\\pm$" << deviation << std::endl;
+        average = calcAverage(mpLoopClosing->vdPRTotal_ms);
+        deviation = calcDeviation(mpLoopClosing->vdPRTotal_ms, average);
+        f << "Total Place Recognition: " << average << "$\\pm$" << deviation << std::endl << std::endl;
+        std::cout << "Total Place Recognition: " << average << "$\\pm$" << deviation << std::endl << std::endl;
 
-    f << std::endl << "Loop Closing (mean$\\pm$std)" << std::endl;
-    std::cout << std::endl << "Loop Closing (mean$\\pm$std)" << std::endl;
-    average = calcAverage(mpLoopClosing->vdLoopFusion_ms);
-    deviation = calcDeviation(mpLoopClosing->vdLoopFusion_ms, average);
-    f << "Loop Fusion: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Loop Fusion: " << average << "$\\pm$" << deviation << std::endl;
-    average = calcAverage(mpLoopClosing->vdLoopOptEss_ms);
-    deviation = calcDeviation(mpLoopClosing->vdLoopOptEss_ms, average);
-    f << "Essential Graph: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Essential Graph: " << average << "$\\pm$" << deviation << std::endl;
-    average = calcAverage(mpLoopClosing->vdLoopTotal_ms);
-    deviation = calcDeviation(mpLoopClosing->vdLoopTotal_ms, average);
-    f << "Total Loop Closing: " << average << "$\\pm$" << deviation << std::endl << std::endl;
-    std::cout << "Total Loop Closing: " << average << "$\\pm$" << deviation << std::endl << std::endl;
+        f << std::endl << "Loop Closing (mean$\\pm$std)" << std::endl;
+        std::cout << std::endl << "Loop Closing (mean$\\pm$std)" << std::endl;
+        average = calcAverage(mpLoopClosing->vdLoopFusion_ms);
+        deviation = calcDeviation(mpLoopClosing->vdLoopFusion_ms, average);
+        f << "Loop Fusion: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Loop Fusion: " << average << "$\\pm$" << deviation << std::endl;
+        average = calcAverage(mpLoopClosing->vdLoopOptEss_ms);
+        deviation = calcDeviation(mpLoopClosing->vdLoopOptEss_ms, average);
+        f << "Essential Graph: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Essential Graph: " << average << "$\\pm$" << deviation << std::endl;
+        average = calcAverage(mpLoopClosing->vdLoopTotal_ms);
+        deviation = calcDeviation(mpLoopClosing->vdLoopTotal_ms, average);
+        f << "Total Loop Closing: " << average << "$\\pm$" << deviation << std::endl << std::endl;
+        std::cout << "Total Loop Closing: " << average << "$\\pm$" << deviation << std::endl << std::endl;
 
-    f << "Numb exec: " << mpLoopClosing->nLoop << std::endl;
-    std::cout << "Num exec: " << mpLoopClosing->nLoop << std::endl;
-    average = calcAverage(mpLoopClosing->vnLoopKFs);
-    deviation = calcDeviation(mpLoopClosing->vnLoopKFs, average);
-    f << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
+        f << "Numb exec: " << mpLoopClosing->nLoop << std::endl;
+        std::cout << "Num exec: " << mpLoopClosing->nLoop << std::endl;
+        average = calcAverage(mpLoopClosing->vnLoopKFs);
+        deviation = calcDeviation(mpLoopClosing->vnLoopKFs, average);
+        f << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
 
-    f << std::endl << "Map Merging (mean$\\pm$std)" << std::endl;
-    std::cout << std::endl << "Map Merging (mean$\\pm$std)" << std::endl;
-    average = calcAverage(mpLoopClosing->vdMergeMaps_ms);
-    deviation = calcDeviation(mpLoopClosing->vdMergeMaps_ms, average);
-    f << "Merge Maps: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Merge Maps: " << average << "$\\pm$" << deviation << std::endl;
-    average = calcAverage(mpLoopClosing->vdWeldingBA_ms);
-    deviation = calcDeviation(mpLoopClosing->vdWeldingBA_ms, average);
-    f << "Welding BA: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Welding BA: " << average << "$\\pm$" << deviation << std::endl;
-    average = calcAverage(mpLoopClosing->vdMergeOptEss_ms);
-    deviation = calcDeviation(mpLoopClosing->vdMergeOptEss_ms, average);
-    f << "Optimization Ess.: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Optimization Ess.: " << average << "$\\pm$" << deviation << std::endl;
-    average = calcAverage(mpLoopClosing->vdMergeTotal_ms);
-    deviation = calcDeviation(mpLoopClosing->vdMergeTotal_ms, average);
-    f << "Total Map Merging: " << average << "$\\pm$" << deviation << std::endl << std::endl;
-    std::cout << "Total Map Merging: " << average << "$\\pm$" << deviation << std::endl << std::endl;
+        f << std::endl << "Map Merging (mean$\\pm$std)" << std::endl;
+        std::cout << std::endl << "Map Merging (mean$\\pm$std)" << std::endl;
+        average = calcAverage(mpLoopClosing->vdMergeMaps_ms);
+        deviation = calcDeviation(mpLoopClosing->vdMergeMaps_ms, average);
+        f << "Merge Maps: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Merge Maps: " << average << "$\\pm$" << deviation << std::endl;
+        average = calcAverage(mpLoopClosing->vdWeldingBA_ms);
+        deviation = calcDeviation(mpLoopClosing->vdWeldingBA_ms, average);
+        f << "Welding BA: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Welding BA: " << average << "$\\pm$" << deviation << std::endl;
+        average = calcAverage(mpLoopClosing->vdMergeOptEss_ms);
+        deviation = calcDeviation(mpLoopClosing->vdMergeOptEss_ms, average);
+        f << "Optimization Ess.: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Optimization Ess.: " << average << "$\\pm$" << deviation << std::endl;
+        average = calcAverage(mpLoopClosing->vdMergeTotal_ms);
+        deviation = calcDeviation(mpLoopClosing->vdMergeTotal_ms, average);
+        f << "Total Map Merging: " << average << "$\\pm$" << deviation << std::endl << std::endl;
+        std::cout << "Total Map Merging: " << average << "$\\pm$" << deviation << std::endl << std::endl;
 
-    f << "Numb exec: " << mpLoopClosing->nMerges << std::endl;
-    std::cout << "Num exec: " << mpLoopClosing->nMerges << std::endl;
-    average = calcAverage(mpLoopClosing->vnMergeKFs);
-    deviation = calcDeviation(mpLoopClosing->vnMergeKFs, average);
-    f << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
-    average = calcAverage(mpLoopClosing->vnMergeMPs);
-    deviation = calcDeviation(mpLoopClosing->vnMergeMPs, average);
-    f << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
+        f << "Numb exec: " << mpLoopClosing->nMerges << std::endl;
+        std::cout << "Num exec: " << mpLoopClosing->nMerges << std::endl;
+        average = calcAverage(mpLoopClosing->vnMergeKFs);
+        deviation = calcDeviation(mpLoopClosing->vnMergeKFs, average);
+        f << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
+        average = calcAverage(mpLoopClosing->vnMergeMPs);
+        deviation = calcDeviation(mpLoopClosing->vnMergeMPs, average);
+        f << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
 
-    f << std::endl << "Full GBA (mean$\\pm$std)" << std::endl;
-    std::cout << std::endl << "Full GBA (mean$\\pm$std)" << std::endl;
-    average = calcAverage(mpLoopClosing->vdGBA_ms);
-    deviation = calcDeviation(mpLoopClosing->vdGBA_ms, average);
-    f << "GBA: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "GBA: " << average << "$\\pm$" << deviation << std::endl;
-    average = calcAverage(mpLoopClosing->vdUpdateMap_ms);
-    deviation = calcDeviation(mpLoopClosing->vdUpdateMap_ms, average);
-    f << "Map Update: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Map Update: " << average << "$\\pm$" << deviation << std::endl;
-    average = calcAverage(mpLoopClosing->vdFGBATotal_ms);
-    deviation = calcDeviation(mpLoopClosing->vdFGBATotal_ms, average);
-    f << "Total Full GBA: " << average << "$\\pm$" << deviation << std::endl << std::endl;
-    std::cout << "Total Full GBA: " << average << "$\\pm$" << deviation << std::endl << std::endl;
+        f << std::endl << "Full GBA (mean$\\pm$std)" << std::endl;
+        std::cout << std::endl << "Full GBA (mean$\\pm$std)" << std::endl;
+        average = calcAverage(mpLoopClosing->vdGBA_ms);
+        deviation = calcDeviation(mpLoopClosing->vdGBA_ms, average);
+        f << "GBA: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "GBA: " << average << "$\\pm$" << deviation << std::endl;
+        average = calcAverage(mpLoopClosing->vdUpdateMap_ms);
+        deviation = calcDeviation(mpLoopClosing->vdUpdateMap_ms, average);
+        f << "Map Update: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Map Update: " << average << "$\\pm$" << deviation << std::endl;
+        average = calcAverage(mpLoopClosing->vdFGBATotal_ms);
+        deviation = calcDeviation(mpLoopClosing->vdFGBATotal_ms, average);
+        f << "Total Full GBA: " << average << "$\\pm$" << deviation << std::endl << std::endl;
+        std::cout << "Total Full GBA: " << average << "$\\pm$" << deviation << std::endl << std::endl;
 
-    f << "Numb exec: " << mpLoopClosing->nFGBA_exec << std::endl;
-    std::cout << "Num exec: " << mpLoopClosing->nFGBA_exec << std::endl;
-    f << "Numb abort: " << mpLoopClosing->nFGBA_abort << std::endl;
-    std::cout << "Num abort: " << mpLoopClosing->nFGBA_abort << std::endl;
-    average = calcAverage(mpLoopClosing->vnGBAKFs);
-    deviation = calcDeviation(mpLoopClosing->vnGBAKFs, average);
-    f << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
-    average = calcAverage(mpLoopClosing->vnGBAMPs);
-    deviation = calcDeviation(mpLoopClosing->vnGBAMPs, average);
-    f << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
-    std::cout << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
+        f << "Numb exec: " << mpLoopClosing->nFGBA_exec << std::endl;
+        std::cout << "Num exec: " << mpLoopClosing->nFGBA_exec << std::endl;
+        f << "Numb abort: " << mpLoopClosing->nFGBA_abort << std::endl;
+        std::cout << "Num abort: " << mpLoopClosing->nFGBA_abort << std::endl;
+        average = calcAverage(mpLoopClosing->vnGBAKFs);
+        deviation = calcDeviation(mpLoopClosing->vnGBAKFs, average);
+        f << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
+        average = calcAverage(mpLoopClosing->vnGBAMPs);
+        deviation = calcDeviation(mpLoopClosing->vnGBAMPs, average);
+        f << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
+        std::cout << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
+    }
+    else    
+    {
+        std::cout << "Loop Closing is disabled so relative statistic isn't displayed here" << std::endl;
+    }
+    
 
     f.close();
 
@@ -1803,6 +1811,7 @@ void Tracking::Track()
         mbStep = false;
     }
 
+    // no motion detection during LocalMapping initialization
     if(mpLocalMapper->mbBadImu)
     {
         cout << "TRACK: Reset map because local mapper set the bad imu flag " << endl;
@@ -1832,10 +1841,11 @@ void Tracking::Track()
             // cout << "id last: " << mLastFrame.mnId << "    id curr: " << mCurrentFrame.mnId << endl;
             if(mpAtlas->isInertial())
             {
-
+                // Reset the active Map or Create a new map
                 if(mpAtlas->isImuInitialized())
                 {
                     cout << "Timestamp jump detected. State set to LOST. Reseting IMU integration..." << endl;
+                    // if the second VIBA hasn't done yet, reset the active Map, otherwise create a new Map
                     if(!pCurrentMap->GetIniertialBA2())
                     {
                         mpSystem->ResetActiveMap();
@@ -1847,6 +1857,7 @@ void Tracking::Track()
                 }
                 else
                 {
+                    // reset the active Map
                     cout << "Timestamp jump detected, before IMU initialization. Reseting..." << endl;
                     mpSystem->ResetActiveMap();
                 }
@@ -1856,8 +1867,9 @@ void Tracking::Track()
         }
     }
 
+    bool isIMUEnabled = (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD);
 
-    if ((mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD) && mpLastKeyFrame)
+    if (isIMUEnabled && mpLastKeyFrame)
         mCurrentFrame.SetNewBias(mpLastKeyFrame->GetImuBias());
 
     if(mState==NO_IMAGES_YET)
@@ -1867,7 +1879,7 @@ void Tracking::Track()
 
     mLastProcessedState=mState;
 
-    if ((mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD) && !mbCreatedMap)
+    if (isIMUEnabled && !mbCreatedMap)
     {
 #ifdef REGISTER_TIMES
         std::chrono::steady_clock::time_point time_StartPreIMU = std::chrono::steady_clock::now();
@@ -1884,15 +1896,21 @@ void Tracking::Track()
     mbCreatedMap = false;
 
     // Get Map Mutex -> Map cannot be changed
+    // First, acquire a mutex lock to ensure thread-safe map access
     unique_lock<mutex> lock(pCurrentMap->mMutexMapUpdate);
 
+    // Reset the map update flag
     mbMapUpdated = false;
 
+    // Get current indices for tracking map changes
     int nCurMapChangeIndex = pCurrentMap->GetMapChangeIndex();
     int nMapChangeIndex = pCurrentMap->GetLastMapChange();
+    // Check if there have been new changes to the map
     if(nCurMapChangeIndex>nMapChangeIndex)
     {
+        // Update the last change index to current
         pCurrentMap->SetLastMapChange(nCurMapChangeIndex);
+        // Set flag indicating map was updated
         mbMapUpdated = true;
     }
 
@@ -1901,6 +1919,7 @@ void Tracking::Track()
     log_file.open("tracking_performance.txt", std::ios::app);
 
 
+    // Initialization
     if(mState==NOT_INITIALIZED)
     {
         if(mSensor==System::STEREO || mSensor==System::RGBD || mSensor==System::IMU_STEREO || mSensor==System::IMU_RGBD)
@@ -1914,6 +1933,7 @@ void Tracking::Track()
 
         //mpFrameDrawer->Update(this);
 
+        // Initialization failed, move onto next frame
         if(mState!=OK) // If rightly initialized, mState=OK
         {
             mLastFrame = Frame(mCurrentFrame);
@@ -1935,35 +1955,45 @@ void Tracking::Track()
 #endif
 
         // Initial camera pose estimation using motion model or relocalization (if tracking is lost)
-        if(!mbOnlyTracking)
+        if(!mbOnlyTracking) // True if local mapping is deactivated and we are performing only localization
         {
 
             // State OK
             // Local Mapping is activated. This is the normal behaviour, unless
             // you explicitly activate the "only tracking" mode.
+            // Success: mState =OK, bOK=true
+            // Failed:  mState = LOST/RECENTLY_LOST, bOK=false
             if(mState==OK)
             {
 
                 // Local Mapping might have changed some MapPoints tracked in last frame
                 CheckReplacedInLastFrame();
 
+                // Velocity and imu are not ready or tracking is lost recently
                 if((!mbVelocity && !pCurrentMap->isImuInitialized()) || mCurrentFrame.mnId<mnLastRelocFrameId+2)
                 {
                     Verbose::PrintMess("TRACK: Track with respect to the reference KF ", Verbose::VERBOSITY_DEBUG);
+                    // SearchbyBoW
                     bOK = TrackReferenceKeyFrame();
                 }
                 else
                 {
                     Verbose::PrintMess("TRACK: Track with motion model", Verbose::VERBOSITY_DEBUG);
+                    // SearchbyProjection
                     bOK = TrackWithMotionModel();
                     if(!bOK)
                         bOK = TrackReferenceKeyFrame();
                 }
-
+                // if we lose tracking again when a relocalization happens within a certain window of frames -- unrelible relocalization
+                // After relocalization, the IMU bias and scale might not be accurate
+                // The system needs a few frames to re-initialize or reset IMU parameters
+                // During this reset period, the system marks itself as LOST to avoid using potentially unreliable IMU data
+                // Failed: 
                 if (!bOK)
                 {
-                    if ( mCurrentFrame.mnId<=(mnLastRelocFrameId+mnFramesToResetIMU) &&
-                         (mSensor==System::IMU_MONOCULAR || mSensor==System::IMU_STEREO || mSensor == System::IMU_RGBD))
+                    bool isWithinResetWindow = mCurrentFrame.mnId <= (mnLastRelocFrameId + mnFramesToResetIMU);
+
+                    if ( isWithinResetWindow && isIMUEnabled)
                     {
                         mState = LOST;
                     }
@@ -1979,21 +2009,32 @@ void Tracking::Track()
                     }
                 }
             }
+            // State LOST/RECENTLY_LOST
             else
             {
-
+                // Relocalization: either predict pose via IMU or  visual relocalization
+                // Success: 
+                // IMU: bOK=true
+                // Visual: bOK = Relocalization()
+                // Failed: 
+                // IMU:    mState = RECENTLY_LOST -> RECENTLY_LOST, bOK=false
+                //         mState = RECENTLY_LOST -> LOST, bOK=false if lose tracking more than 5s
+                // Visual: mState = RECENTLY_LOST -> RECENTLY_LOST, bOK=false
+                //         mState = RECENTLY_LOST -> LOST, bOK=false if lose tracking more than 3s     
                 if (mState == RECENTLY_LOST)
                 {
                     Verbose::PrintMess("Lost for a short time", Verbose::VERBOSITY_NORMAL);
 
                     bOK = true;
-                    if((mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD))
+                    if(isIMUEnabled)
                     {
                         if(pCurrentMap->isImuInitialized())
                             PredictStateIMU();
                         else
                             bOK = false;
-
+                        // (cj) some optimization can be here, use visual for relocalization as well to improve the robustness. 
+                        // However it might take some computation resources
+                        // if machine lose tracking for more than 5s, consider it as LOST
                         if (mCurrentFrame.mTimeStamp-mTimeStampLost>time_recently_lost)
                         {
                             mState = LOST;
@@ -2015,6 +2056,7 @@ void Tracking::Track()
                         }
                     }
                 }
+                // Reset Map
                 else if (mState == LOST)
                 {
 
@@ -2040,17 +2082,20 @@ void Tracking::Track()
         else
         {
             // Localization Mode: Local Mapping is deactivated (TODO Not available in inertial mode)
+            // Do visual Relocalization and update tracking results correspondingly
+            cout << "localization only mode" << endl;
             if(mState==LOST)
             {
-                if(mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
+                if(isIMUEnabled)
                     Verbose::PrintMess("IMU. State LOST", Verbose::VERBOSITY_NORMAL);
                 bOK = Relocalization();
             }
             else
             {
+                // In last frame we tracked enough MapPoints in the map
                 if(!mbVO)
                 {
-                    // In last frame we tracked enough MapPoints in the map
+                    
                     if(mbVelocity)
                     {
                         bOK = TrackWithMotionModel();
@@ -2060,9 +2105,10 @@ void Tracking::Track()
                         bOK = TrackReferenceKeyFrame();
                     }
                 }
+                // In last frame we tracked mainly "visual odometry" points.
                 else
                 {
-                    // In last frame we tracked mainly "visual odometry" points.
+                    
 
                     // We compute two camera poses, one from motion model and one doing relocalization.
                     // If relocalization is sucessfull we choose that solution, otherwise we retain
@@ -2109,6 +2155,7 @@ void Tracking::Track()
             }
         }
 
+        // assign ref KF to current Frame
         if(!mCurrentFrame.mpReferenceKF)
             mCurrentFrame.mpReferenceKF = mpReferenceKF;
 
@@ -2118,7 +2165,6 @@ void Tracking::Track()
         double timePosePred = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndPosePred - time_StartPosePred).count();
         vdPosePred_ms.push_back(timePosePred);
 #endif
-
 
 #ifdef REGISTER_TIMES
         std::chrono::steady_clock::time_point time_StartLMTrack = std::chrono::steady_clock::now();
@@ -2146,7 +2192,7 @@ void Tracking::Track()
             mState = OK;
         else if (mState == OK)
         {
-            if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
+            if (isIMUEnabled)
             {
                 Verbose::PrintMess("Track lost for less than one second...", Verbose::VERBOSITY_NORMAL);
                 if(!pCurrentMap->isImuInitialized() || !pCurrentMap->GetIniertialBA2())
@@ -2165,6 +2211,7 @@ void Tracking::Track()
                 mTimeStampLost = mCurrentFrame.mTimeStamp;
             //}
         }
+
         log_file << "Frame: " << mCurrentFrame.mnId 
                 << " Matches: " << mnMatchesInliers
                 << " MapPoints: " << mCurrentFrame.N
@@ -2172,36 +2219,12 @@ void Tracking::Track()
                 << " KFs: " << mpAtlas->KeyFramesInMap()
                 << " Grass matches: " << mnMatchesOnGrass
                 << std::endl;
-
-        // if (mState == OK)
-        // {
-            
-        // }
-        // else if(mState == LOST)
-        // {
-        //     log_file << "Frame: " << mCurrentFrame.mnId 
-        //             << " Matches: " << mnMatchesInliers
-        //             << " MapPoints: " << mCurrentFrame.N
-        //             << " LocalMapPoints: " << mvpLocalMapPoints.size()
-        //             << " KFs: " << mpAtlas->KeyFramesInMap()
-        //             << " Status: LOST" << std::endl;
-        // }
-        // else if(mState == RECENTLY_LOST)
-        // {
-        //     log_file << "Frame: " << mCurrentFrame.mnId 
-        //             << " Matches: " << mnMatchesInliers
-        //             << " MapPoints: " << mCurrentFrame.N
-        //             << " LocalMapPoints: " << mvpLocalMapPoints.size()
-        //             << " KFs: " << mpAtlas->KeyFramesInMap()
-        //             << " Status: RECENTLY_LOST" << std::endl;
-        // }
-
         log_file.close();
         
 
         // Save frame if recent relocalization, since they are used for IMU reset (as we are making copy, it shluld be once mCurrFrame is completely modified)
         if((mCurrentFrame.mnId<(mnLastRelocFrameId+mnFramesToResetIMU)) && (mCurrentFrame.mnId > mnFramesToResetIMU) &&
-           (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD) && pCurrentMap->isImuInitialized())
+           isIMUEnabled && pCurrentMap->isImuInitialized())
         {
             // TODO check this situation
             Verbose::PrintMess("Saving pointer to frame. imu needs reset...", Verbose::VERBOSITY_NORMAL);
@@ -2251,7 +2274,7 @@ void Tracking::Track()
                 mbVelocity = false;
             }
 
-            if(mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
+            if(isIMUEnabled)
                 mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.GetPose());
 
             // Clean VO matches
@@ -2281,8 +2304,7 @@ void Tracking::Track()
 
             // Check if we need to insert a new keyframe
             // if(bNeedKF && bOK)
-            if(bNeedKF && (bOK || (mInsertKFsLost && mState==RECENTLY_LOST &&
-                                   (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD))))
+            if(bNeedKF && (bOK || (mInsertKFsLost && mState==RECENTLY_LOST && isIMUEnabled)))
                 CreateNewKeyFrame();
 
 #ifdef REGISTER_TIMES
@@ -2311,7 +2333,7 @@ void Tracking::Track()
                 mpSystem->ResetActiveMap();
                 return;
             }
-            if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
+            if (isIMUEnabled)
                 if (!pCurrentMap->isImuInitialized())
                 {
                     Verbose::PrintMess("Track lost before IMU initialisation, reseting...", Verbose::VERBOSITY_QUIET);
@@ -3075,6 +3097,7 @@ bool Tracking::TrackLocalMap()
 
     // Decide if the tracking was succesful
     // More restrictive if there was a relocalization recently
+    // assign mnMatchesInliers to mnMatchesInliers of LocalMapper
     mpLocalMapper->mnMatchesInliers=mnMatchesInliers;
     if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && mnMatchesInliers<50)
         return false;
@@ -3211,6 +3234,7 @@ bool Tracking::NeedNewKeyFrame()
     const bool c2 = (((mnMatchesInliers<nRefMatches*thRefRatio || bNeedToInsertClose)) && mnMatchesInliers>15);
 
     //std::cout << "NeedNewKF: c1a=" << c1a << "; c1b=" << c1b << "; c1c=" << c1c << "; c2=" << c2 << std::endl;
+
     // Temporal condition for Inertial cases
     bool c3 = false;
     if(mpLastKeyFrame)
@@ -3228,10 +3252,13 @@ bool Tracking::NeedNewKeyFrame()
     }
 
     bool c4 = false;
-    if ((((mnMatchesInliers<75) && (mnMatchesInliers>15)) || mState==RECENTLY_LOST) && (mSensor == System::IMU_MONOCULAR)) // MODIFICATION_2, originally ((((mnMatchesInliers<75) && (mnMatchesInliers>15)) || mState==RECENTLY_LOST) && ((mSensor == System::IMU_MONOCULAR)))
+    // MODIFICATION_2, originally 
+    // ((((mnMatchesInliers<75) && (mnMatchesInliers>15)) || mState==RECENTLY_LOST) && ((mSensor == System::IMU_MONOCULAR)))
+    // not for stereo cam
+    if ((((mnMatchesInliers<75) && (mnMatchesInliers>15)) || mState==RECENTLY_LOST) && (mSensor == System::IMU_MONOCULAR)) 
         c4=true;
     else
-        c4=false;
+        c4=false; 
 
     if(((c1a||c1b||c1c) && c2)||c3 ||c4)
     {
@@ -3848,7 +3875,8 @@ void Tracking::Reset(bool bLocMap)
 
     // Reset Loop Closing
     Verbose::PrintMess("Reseting Loop Closing...", Verbose::VERBOSITY_NORMAL);
-    mpLoopClosing->RequestReset();
+    if (mpLoopClosing)
+        mpLoopClosing->RequestReset();
     Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
 
     // Clear BoW Database
@@ -3908,7 +3936,8 @@ void Tracking::ResetActiveMap(bool bLocMap)
 
     // Reset Loop Closing
     Verbose::PrintMess("Reseting Loop Closing...", Verbose::VERBOSITY_NORMAL);
-    mpLoopClosing->RequestResetActiveMap(pMap);
+    if (mpLoopClosing)
+        mpLoopClosing->RequestResetActiveMap(pMap);
     Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
 
     // Clear BoW Database
