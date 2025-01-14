@@ -482,7 +482,7 @@ void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNo
     n1.UL = UL;
     n1.UR = cv::Point2i(UL.x+halfX,UL.y);
     n1.BL = cv::Point2i(UL.x,UL.y+halfY);
-    n1.BR = cv::Point2i(UL.x+halfX,UL.y+halfY);
+    n1.BR = cv::Point2i(UL.x+halfX,UL.y+halfY);k
     n1.vKeys.reserve(vKeys.size());
 
     n2.UL = n1.UR;
@@ -1178,8 +1178,9 @@ void ORBextractor::ComputePyramid(cv::Mat image)
 
         // Compute the resized image
         if( level != 0 )
-        {
-            // resize(mvImagePyramid[level-1], mvImagePyramid[level], sz, 0, 0, INTER_AREA);  // INTER_AREA is better for image downsampling and computation expansive
+        {   
+            // INTER_AREA is better for image downsampling and computation expansive
+            // resize(mvImagePyramid[level-1], mvImagePyramid[level], sz, 0, 0, INTER_AREA);
             resize(mvImagePyramid[level-1], mvImagePyramid[level], sz, 0, 0, INTER_LINEAR);
 
             copyMakeBorder(mvImagePyramid[level], temp, EDGE_THRESHOLD, EDGE_THRESHOLD, EDGE_THRESHOLD, EDGE_THRESHOLD,

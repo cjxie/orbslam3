@@ -2408,6 +2408,8 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
 {
     Map* pCurrentMap = pKF->GetMap();
 
+    // 1. Temporal Window (optimizable KFs)
+    // Take at most maxOpt (10 or 25) previous sequential keyframes
     // 10-frame sliding window
     int maxOpt=10;
     int opt_it=10;
@@ -2440,6 +2442,7 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
     }
 
     int N = vpOptimizableKFs.size();
+    num_OptKF = N;
 
     // Optimizable points seen by temporal optimizable keyframes
     list<MapPoint*> lLocalMapPoints;
@@ -2461,6 +2464,8 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
 
     // Fixed Keyframe: First frame previous KF to optimization window)
     list<KeyFrame*> lFixedKeyFrames;
+
+    // either the previous frame of the First frame or the first frame itself in the window 
     if(vpOptimizableKFs.back()->mPrevKF)
     {
         lFixedKeyFrames.push_back(vpOptimizableKFs.back()->mPrevKF);
@@ -2474,10 +2479,14 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
         vpOptimizableKFs.pop_back();
     }
 
+    // 2. Covisiable KFs
+    // Select covisible KFs that share map points observations with current KF
+    // However, this is disabled by default, which can be turned on by increase the value of maxCovKF
     // Optimizable visual KFs
     const int maxCovKF = 0;
     for(int i=0, iend=vpNeighsKFs.size(); i<iend; i++)
     {
+
         if(lpOptVisKFs.size() >= maxCovKF)
             break;
 
@@ -2503,10 +2512,13 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
             }
         }
     }
+    num_OptKF = num_OptKF + lpOptVisKFs.size();
 
+    // 3. Fixed KFs
+    // KFs that share the observation with localMPs provide constraints to the problem but don' get optimized
+    // Basically, more edges are added, but # of edges are limited
     // Fixed KFs which are not covisible optimizable
     const int maxFixKF = 200;
-
     for(list<MapPoint*>::iterator lit=lLocalMapPoints.begin(), lend=lLocalMapPoints.end(); lit!=lend; lit++)
     {
         map<KeyFrame*,tuple<int,int>> observations = (*lit)->GetObservations();
@@ -2528,6 +2540,7 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
             break;
     }
 
+    num_fixedKF = lFixedKeyFrames.size();
     bool bNonFixed = (lFixedKeyFrames.size() == 0);
 
     // Setup optimizer
@@ -2537,6 +2550,7 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
 
     g2o::BlockSolverX * solver_ptr = new g2o::BlockSolverX(linearSolver);
 
+    // Create solver and assign lambda value based on problem size
     if(bLarge)
     {
         g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
@@ -2615,6 +2629,8 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
         }
     }
 
+    int nEdges = 0;
+
     // Create intertial constraints
     vector<EdgeInertial*> vei(N,(EdgeInertial*)NULL);
     vector<EdgeGyroRW*> vegr(N,(EdgeGyroRW*)NULL);
@@ -2636,7 +2652,7 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
             g2o::HyperGraph::Vertex* VV1 = optimizer.vertex(maxKFid+3*(pKFi->mPrevKF->mnId)+1);
             g2o::HyperGraph::Vertex* VG1 = optimizer.vertex(maxKFid+3*(pKFi->mPrevKF->mnId)+2);
             g2o::HyperGraph::Vertex* VA1 = optimizer.vertex(maxKFid+3*(pKFi->mPrevKF->mnId)+3);
-            g2o::HyperGraph::Vertex* VP2 =  optimizer.vertex(pKFi->mnId);
+            g2o::HyperGraph::Vertex* VP2 = optimizer.vertex(pKFi->mnId);
             g2o::HyperGraph::Vertex* VV2 = optimizer.vertex(maxKFid+3*(pKFi->mnId)+1);
             g2o::HyperGraph::Vertex* VG2 = optimizer.vertex(maxKFid+3*(pKFi->mnId)+2);
             g2o::HyperGraph::Vertex* VA2 = optimizer.vertex(maxKFid+3*(pKFi->mnId)+3);
@@ -2669,6 +2685,7 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
                 rki->setDelta(sqrt(16.92));
             }
             optimizer.addEdge(vei[i]);
+            nEdges++;
 
             vegr[i] = new EdgeGyroRW();
             vegr[i]->setVertex(0,VG1);
@@ -2676,6 +2693,7 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
             Eigen::Matrix3d InfoG = pKFi->mpImuPreintegrated->C.block<3,3>(9,9).cast<double>().inverse();
             vegr[i]->setInformation(InfoG);
             optimizer.addEdge(vegr[i]);
+            nEdges++;
 
             vear[i] = new EdgeAccRW();
             vear[i]->setVertex(0,VA1);
@@ -2684,6 +2702,7 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
             vear[i]->setInformation(InfoA);           
 
             optimizer.addEdge(vear[i]);
+            nEdges++;
         }
         else
             cout << "ERROR building inertial edge" << endl;
@@ -2787,6 +2806,8 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
                     vpEdgesMono.push_back(e);
                     vpEdgeKFMono.push_back(pKFi);
                     vpMapPointEdgeMono.push_back(pMP);
+
+                    nEdges++;
                 }
                 // Stereo-observation
                 else if(leftIndex != -1)// Stereo observation
@@ -2818,6 +2839,8 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
                     vpEdgesStereo.push_back(e);
                     vpEdgeKFStereo.push_back(pKFi);
                     vpMapPointEdgeStereo.push_back(pMP);
+
+                    nEdges++;
                 }
 
                 // Monocular right observation
@@ -2852,12 +2875,15 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
                         vpEdgesMono.push_back(e);
                         vpEdgeKFMono.push_back(pKFi);
                         vpMapPointEdgeMono.push_back(pMP);
+                        nEdges++;
                     }
                 }
             }
         }
     }
-
+    
+    num_MPs = lLocalMapPoints.size();
+    num_edges = nEdges;
     //cout << "Total map points: " << lLocalMapPoints.size() << endl;
     for(map<int,int>::iterator mit=mVisEdges.begin(), mend=mVisEdges.end(); mit!=mend; mit++)
     {
@@ -3522,6 +3548,7 @@ void Optimizer::InertialOptimization(Map *pMap, Eigen::Matrix3d &Rwg, double &sc
     Rwg = VGDir->estimate().Rwg;
 }
 
+// LocalBA for LC 
 void Optimizer::LocalBundleAdjustment(KeyFrame* pMainKF,vector<KeyFrame*> vpAdjustKF, vector<KeyFrame*> vpFixedKF, bool *pbStopFlag)
 {
     bool bShowImages = false;
