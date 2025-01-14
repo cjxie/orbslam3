@@ -106,3 +106,5 @@ log/
 evaluation/
 Vocabulary/*.txt
 Vocabulary/brief_k10L6.bin
+
+test/

@@ -96,6 +96,7 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
     mbInitWith3KFs = false;
     mnNumDataset = 0;
 
+    /* //(cj) can be removed, just a print out message
     vector<GeometricCamera*> vpCams = mpAtlas->GetAllCameras();
     std::cout << "There are " << vpCams.size() << " cameras in the atlas" << std::endl;
     for(GeometricCamera* pCam : vpCams)
@@ -114,6 +115,8 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
             std::cout << " is unknown" << std::endl;
         }
     }
+    */
+    
 
 #ifdef REGISTER_TIMES
     vdRectStereo_ms.clear();
@@ -538,6 +541,8 @@ Tracking::~Tracking()
 
 }
 
+// (cj) can be replaced this member function call with a function, 
+// or just remove it and directly initialize Camera 
 void Tracking::newParameterLoader(Settings *settings) {
     mpCamera = settings->camera1();
     mpCamera = mpAtlas->AddCamera(mpCamera);

@@ -1191,6 +1191,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         {
             KeyFrame* pKFi = mit->first;
 
+            // Keyframe is not included in LBA and is the first time being visited
             if(pKFi->mnBALocalForKF!=pKF->mnId && pKFi->mnBAFixedForKF!=pKF->mnId )
             {                
                 pKFi->mnBAFixedForKF=pKF->mnId;
@@ -2407,8 +2408,10 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
 {
     Map* pCurrentMap = pKF->GetMap();
 
+    // 10-frame sliding window
     int maxOpt=10;
     int opt_it=10;
+    // Or matching quality is good, enlarge the window size
     if(bLarge)
     {
         maxOpt=25;
@@ -2421,6 +2424,7 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
     const vector<KeyFrame*> vpNeighsKFs = pKF->GetVectorCovisibleKeyFrames();
     list<KeyFrame*> lpOptVisKFs;
 
+    // add at most Nd previous KFs as optimization targets into a vector
     vpOptimizableKFs.reserve(Nd);
     vpOptimizableKFs.push_back(pKF);
     pKF->mnBALocalForKF = pKF->mnId;

@@ -170,10 +170,12 @@ void LocalMapping::Run()
 
                 }
 #ifdef REGISTER_TIMES
+                std::cout << "At Frame " << mpCurrentKeyFrame->mnFrameId << ", LBA is performed" << std::endl;
                 std::chrono::steady_clock::time_point time_EndLBA = std::chrono::steady_clock::now();
 
                 if(b_doneLBA)
                 {
+                    // std::cout << "At Frame " << mpCurrentKeyFrame->mnFrameId << ", " << num_OptKF_BA << " frames are optimized" << std::endl;
                     timeLBA_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLBA - time_EndMPCreation).count();
                     vdLBA_ms.push_back(timeLBA_ms);
 
@@ -209,7 +211,8 @@ void LocalMapping::Run()
                 timeKFCulling_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndKFCulling - time_EndLBA).count();
                 vdKFCulling_ms.push_back(timeKFCulling_ms);
 #endif
-
+                // do InertialGBA for better initialization
+                // FullInertialBA is called twice to ensure robust initialization
                 if ((mTinit<50.0f) && mbInertial)
                 {
                     if(mpCurrentKeyFrame->GetMap()->isImuInitialized() && mpTracker->mState==Tracking::OK) // Enter here everytime local-mapping is called
@@ -1404,6 +1407,7 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
         lpKFtoCheck.pop_front();
     }
 
+    // (todo) to remove Map usage
     // Correct MapPoints
     const vector<MapPoint*> vpMPs = mpAtlas->GetCurrentMap()->GetAllMapPoints();
 
