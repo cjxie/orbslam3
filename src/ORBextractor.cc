@@ -482,7 +482,7 @@ void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNo
     n1.UL = UL;
     n1.UR = cv::Point2i(UL.x+halfX,UL.y);
     n1.BL = cv::Point2i(UL.x,UL.y+halfY);
-    n1.BR = cv::Point2i(UL.x+halfX,UL.y+halfY);k
+    n1.BR = cv::Point2i(UL.x+halfX,UL.y+halfY);
     n1.vKeys.reserve(vKeys.size());
 
     n2.UL = n1.UR;
