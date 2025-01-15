@@ -170,12 +170,15 @@ void LocalMapping::Run()
 
                 }
 #ifdef REGISTER_TIMES
-                std::cout << "At Frame " << mpCurrentKeyFrame->mnFrameId << ", LBA is performed" << std::endl;
+                // std::cout << "At Frame " << mpCurrentKeyFrame->mnFrameId << ", LBA is performed" << std::endl;
                 std::chrono::steady_clock::time_point time_EndLBA = std::chrono::steady_clock::now();
 
                 if(b_doneLBA)
                 {
-                    // std::cout << "At Frame " << mpCurrentKeyFrame->mnFrameId << ", " << num_OptKF_BA << " frames are optimized" << std::endl;
+                    std::cout << "At Frame " << mpCurrentKeyFrame->mnFrameId << ", " 
+                            << num_OptKF_BA << " frames are optimized" << ", " 
+                            << num_MPs_BA << " MPs are optimized" << ", " 
+                            << num_edges_BA << " edges are created" << std::endl;
                     timeLBA_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLBA - time_EndMPCreation).count();
                     vdLBA_ms.push_back(timeLBA_ms);
 
