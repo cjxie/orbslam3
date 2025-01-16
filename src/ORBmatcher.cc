@@ -122,21 +122,25 @@ namespace ORB_SLAM3
                     // Apply ratio to second match (only if best and second are in the same scale level)
                     if(bestDist<=TH_HIGH)
                     {
+                        // if the best match's distance is more than mfNNratio of the second best match's distance. 
+                        // Not distinctive enough, reject it
                         if(bestLevel==bestLevel2 && bestDist>mfNNratio*bestDist2)
                             continue;
 
-                        if(bestLevel!=bestLevel2 || bestDist<=mfNNratio*bestDist2){
-                            F.mvpMapPoints[bestIdx]=pMP;
+                        // (cj) redundant one
+                        // if(bestLevel!=bestLevel2 || bestDist<=mfNNratio*bestDist2){
+                        
+                        F.mvpMapPoints[bestIdx]=pMP;
 
-                            if(F.Nleft != -1 && F.mvLeftToRightMatch[bestIdx] != -1){ //Also match with the stereo observation at right camera
-                                F.mvpMapPoints[F.mvLeftToRightMatch[bestIdx] + F.Nleft] = pMP;
-                                nmatches++;
-                                right++;
-                            }
-
+                        if(F.Nleft != -1 && F.mvLeftToRightMatch[bestIdx] != -1){ //Also match with the stereo observation at right camera
+                            F.mvpMapPoints[F.mvLeftToRightMatch[bestIdx] + F.Nleft] = pMP;
                             nmatches++;
-                            left++;
+                            right++;
                         }
+
+                        nmatches++;
+                        left++;
+                        // }
                     }
                 }
             }

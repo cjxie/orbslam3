@@ -1519,8 +1519,24 @@ Sophus::SE3f Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat 
     mCurrentFrame.mnDataset = mnNumDataset;
 
 #ifdef REGISTER_TIMES
+    static int window = 30;
+    static double averageTimeORB_Ext = 0;
+    static double averageTimeStereoMatch = 0;
     vdORBExtract_ms.push_back(mCurrentFrame.mTimeORB_Ext);
     vdStereoMatch_ms.push_back(mCurrentFrame.mTimeStereoMatch);
+
+    averageTimeORB_Ext += mCurrentFrame.mTimeORB_Ext;
+    averageTimeStereoMatch += mCurrentFrame.mTimeStereoMatch;
+
+    if (mCurrentFrame.mnId % window ==0)
+    {
+        std::cout << std::setprecision(3) << "Frame " << mCurrentFrame.mnId - window + 1 << "~" << mCurrentFrame.mnId
+            << ", ORB Extraction: " << averageTimeORB_Ext / window 
+            << "ms, StereoMatch: " << averageTimeStereoMatch / window << "ms" << std::endl;
+        averageTimeORB_Ext = 0;
+        averageTimeStereoMatch =0;
+    }
+    
 #endif
 
     //cout << "Tracking start" << endl;
@@ -4064,7 +4080,7 @@ void Tracking::InformOnlyTracking(const bool &flag)
 void Tracking::UpdateFrameIMU(const float s, const IMU::Bias &b, KeyFrame* pCurrentKeyFrame)
 {
     Map * pMap = pCurrentKeyFrame->GetMap();
-    unsigned int index = mnFirstFrameId;
+    // unsigned int index = mnFirstFrameId;
     list<ORB_SLAM3::KeyFrame*>::iterator lRit = mlpReferences.begin();
     list<bool>::iterator lbL = mlbLost.begin();
     for(auto lit=mlRelativeFramePoses.begin(),lend=mlRelativeFramePoses.end();lit!=lend;lit++, lRit++, lbL++)

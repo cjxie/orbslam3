@@ -52,6 +52,17 @@ find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
 find_package(realsense2)
 
+find_package(GTest REQUIRED)
+
+find_package(OpenMP)
+SET(TEST_OPENMP OFF CACHE BOOL "Build Orbslam with OpenMP support")
+if(OPENMP_FOUND AND TEST_OPENMP)
+   SET(USE_OPENMP 1)
+   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
+   MESSAGE(STATUS "Compiler with OpenMP support")
+endif()
+
 include_directories(
 ${PROJECT_SOURCE_DIR}
 ${PROJECT_SOURCE_DIR}/include
@@ -277,3 +288,26 @@ target_link_libraries(stereo_inertial_euroc ${PROJECT_NAME})
 #             Examples/Calibration/recorder_realsense_T265.cc)
 #     target_link_libraries(recorder_realsense_T265 ${PROJECT_NAME})
 # endif()
+
+
+# Build Test
+SET(BUILD_TEST OFF CACHE BOOL "Build test executables")
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/test)
+
+if(BUILD_TEST)
+   message(STATUS "Build test executables")
+
+   # Add executable
+   add_executable(orb_tests 
+                  test/ORBextractor_tests.cpp
+                  src/ORBextractor.cpp)
+
+   # Link libraries
+   target_link_libraries(orb_tests
+         ${OpenCV_LIBS}
+         OpenMP::OpenMP_CXX
+         GTest::GTest
+         GTest::Main)
+endif()
+

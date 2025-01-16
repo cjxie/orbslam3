@@ -22,10 +22,12 @@
 #include <vector>
 #include <list>
 #include <opencv2/opencv.hpp>
+#include "Settings.h"
 
 
 namespace ORB_SLAM3
 {
+
 static const int PATCH_SIZE = 31;
 static const int HALF_PATCH_SIZE = 15;
 static const int EDGE_THRESHOLD = 19;
@@ -81,6 +83,24 @@ public:
     }
 
     std::vector<cv::Mat> mvImagePyramid;
+#ifdef REGISTER_TIMES
+    double mTimePyramid;
+    double mTimeFAST;
+    // double mTimeOrientation;
+    double mTimeDescriptor;
+
+    using Clock = std::chrono::steady_clock;
+    using Duration = std::chrono::duration<double, std::milli>;
+
+    template<typename Func>
+    double measureTime(Func&& func)
+    {
+        auto start = Clock::now();
+        func();
+        auto end = Clock::now();
+        return std::chrono::duration_cast<Duration>(end-start).count();
+    }
+#endif
 
 protected:
 

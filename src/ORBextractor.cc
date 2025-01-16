@@ -68,7 +68,6 @@ using namespace std;
 namespace ORB_SLAM3
 {
 
-
 static float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max)
 {
     int m_01 = 0, m_10 = 0;
@@ -407,6 +406,13 @@ ORBextractor::ORBextractor(int _nfeatures, float _scaleFactor, int _nlevels,
         nfeatures(_nfeatures), scaleFactor(_scaleFactor), nlevels(_nlevels),
         iniThFAST(_iniThFAST), minThFAST(_minThFAST)
 {
+
+#ifdef REGISTER_TIMES
+    mTimePyramid = 0.0;
+    mTimeFAST = 0.0;
+    // mTimeOrientation = 0.0;
+    mTimeDescriptor = 0.0;
+#endif
     mvScaleFactor.resize(nlevels);
     mvLevelSigma2.resize(nlevels);
     mvScaleFactor[0]=1.0f;
@@ -427,6 +433,9 @@ ORBextractor::ORBextractor(int _nfeatures, float _scaleFactor, int _nlevels,
 
     mvImagePyramid.resize(nlevels);
 
+    // this formulation ensures the the sum of features at each level is roughly to total number of features
+    // More features at finer scales (lower levels)
+    // The geometric decrease ensures a reasonable distribution across scales
     mnFeaturesPerLevel.resize(nlevels);
     float factor = 1.0f / scaleFactor;
     float nDesiredFeaturesPerScale = nfeatures*(1 - factor)/(1 - (float)pow((double)factor, (double)nlevels));
@@ -1085,20 +1094,42 @@ static void computeDescriptors(const Mat& image, vector<KeyPoint>& keypoints, Ma
 int ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPoint>& _keypoints,
                               OutputArray _descriptors, std::vector<int> &vLappingArea)
 {
-    //cout << "[ORBextractor]: Max Features: " << nfeatures << endl;
+    
+    //cout << "[ORBextractor]: Max Features: " << nfeatures << endl;    
+    static int count = 0;
     if(_image.empty())
         return -1;
-
+    
+    count++;
     Mat image = _image.getMat();
     assert(image.type() == CV_8UC1 );
 
     // Pre-compute the scale pyramid
+#ifdef REGISTER_TIMES
+    std::chrono::steady_clock::time_point time_StartPyramid = Clock::now();
+#endif    
     ComputePyramid(image);
+#ifdef REGISTER_TIMES
+    std::chrono::steady_clock::time_point time_EndPyramid = Clock::now();
+    mTimePyramid += std::chrono::duration_cast<Duration>(time_EndPyramid - time_StartPyramid).count();
+#endif    
+
 
     vector < vector<KeyPoint> > allKeypoints;
+#ifdef REGISTER_TIMES
+    std::chrono::steady_clock::time_point time_StartFAST = Clock::now();
+#endif        
     ComputeKeyPointsOctTree(allKeypoints);
     //ComputeKeyPointsOld(allKeypoints);
 
+#ifdef REGISTER_TIMES
+    std::chrono::steady_clock::time_point time_EndFAST = Clock::now();
+    mTimeFAST += std::chrono::duration_cast<Duration>(time_EndFAST - time_StartFAST).count();
+#endif
+
+#ifdef REGISTER_TIMES    
+    std::chrono::steady_clock::time_point time_StartDescriptor = Clock::now();
+#endif
     Mat descriptors;
 
     int nkeypoints = 0;
@@ -1139,7 +1170,7 @@ int ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPoi
         offset += nkeypointsLevel;
 
 
-        float scale = mvScaleFactor[level]; //getScale(level, firstLevel, scaleFactor);
+        float scale = mvScaleFactor[level];
         int i = 0;
         for (vector<KeyPoint>::iterator keypoint = keypoints.begin(),
                      keypointEnd = keypoints.end(); keypoint != keypointEnd; ++keypoint){
@@ -1163,6 +1194,25 @@ int ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPoi
         }
     }
     //cout << "[ORBextractor]: extracted " << _keypoints.size() << " KeyPoints" << endl;
+#ifdef REGISTER_TIMES
+    std::chrono::steady_clock::time_point time_EndDescriptor = Clock::now();
+    mTimeDescriptor += std::chrono::duration_cast<Duration>(time_EndDescriptor - time_StartDescriptor).count();
+#endif
+
+#ifdef REGISTER_TIMES
+    static int window = 30;
+    if (count % 30 == 0)
+    {
+        std::cout << "[ORBextractor]:  " 
+            << "Pyramid: " << mTimePyramid / window
+            << "ms, FAST: " << mTimeFAST / window
+            << "ms, Descriptor: " << mTimeDescriptor / window << std::endl;
+        mTimePyramid = 0;
+        mTimeFAST = 0;
+        mTimeDescriptor = 0;
+    }      
+#endif
+
     return monoIndex;
 }
 

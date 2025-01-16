@@ -408,12 +408,15 @@ void LocalMapping::MapPointCulling()
 void LocalMapping::CreateNewMapPoints()
 {
     // Retrieve neighbor keyframes in covisibility graph
+
+    // For most cases
     int nn = 10;
-    // For stereo inertial case
+    // For mono case
     if(mbMonocular)
         nn=30;
     vector<KeyFrame*> vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
 
+    // For inertial-assisted system, Add sequential previous frames till the size of NeighKFs reaches limit
     if (mbInertial)
     {
         KeyFrame* pKF = mpCurrentKeyFrame;
