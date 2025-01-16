@@ -300,8 +300,8 @@ if(BUILD_TEST)
 
    # Add executable
    add_executable(orb_tests 
-                  test/ORBextractor_tests.cpp
-                  src/ORBextractor.cpp)
+                  test/ORBextractor_test.cpp
+                  src/ORBextractor.cc)
 
    # Link libraries
    target_link_libraries(orb_tests
