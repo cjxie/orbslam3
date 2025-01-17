@@ -24,13 +24,25 @@
 #include <opencv2/opencv.hpp>
 #include "Settings.h"
 
-
+using namespace cv;
+using namespace std;
 namespace ORB_SLAM3
 {
 
-static const int PATCH_SIZE = 31;
-static const int HALF_PATCH_SIZE = 15;
-static const int EDGE_THRESHOLD = 19;
+class ORBTest; 
+
+extern const float factorPI;
+float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max);
+void computeOrbDescriptor(const KeyPoint& kpt,
+                                    const Mat& img, const Point* pattern,
+                                    uchar* desc);
+
+extern const int bit_pattern_31_[256*4];
+
+extern const int PATCH_SIZE;
+extern const int HALF_PATCH_SIZE;
+extern const int EDGE_THRESHOLD;
+
 class ExtractorNode
 {
 public:
@@ -46,6 +58,7 @@ public:
 
 class ORBextractor
 {
+friend class ORBTest; // Add this line to give test class access
 public:
     
     enum {HARRIS_SCORE=0, FAST_SCORE=1 };
@@ -103,7 +116,7 @@ public:
 #endif
 
 protected:
-
+    
     void ComputePyramid(cv::Mat image);
     void ComputeKeyPointsOctTree(std::vector<std::vector<cv::KeyPoint> >& allKeypoints);    
     std::vector<cv::KeyPoint> DistributeOctTree(const std::vector<cv::KeyPoint>& vToDistributeKeys, const int &minX,

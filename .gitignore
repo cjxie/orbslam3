@@ -121,7 +121,6 @@ Vocabulary/*.txt
 Vocabulary/brief_k10L6.bin
 
 Examples/Calibration/
-test/
 
 Calibration_Tutorial.pdf
 test.txt
