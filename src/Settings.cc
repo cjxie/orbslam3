@@ -418,6 +418,8 @@ namespace ORB_SLAM3 {
         accWalk_ = readParameter<float>(fSettings,"IMU.AccWalk",found);
         imuFrequency_ = readParameter<float>(fSettings,"IMU.Frequency",found);
 
+        imu_method = readParameter<int>(fSettings,"IMU.IMUMethod",found, false);
+
         cv::Mat cvTbc = readParameter<cv::Mat>(fSettings,"IMU.T_b_c1",found);
         Tbc_ = Converter::toSophus(cvTbc);
 
@@ -631,6 +633,7 @@ namespace ORB_SLAM3 {
         output << "\t-ORB number of scales: " << settings.nLevels_ << endl;
         output << "\t-Initial FAST threshold: " << settings.initThFAST_ << endl;
         output << "\t-Min FAST threshold: " << settings.minThFAST_ << endl;
+        output << "\t-IMU Initializer: " << (settings.imu_method == 0 ? "orb_slam" : "vins_fusion") << endl;
 
         return output;
     }

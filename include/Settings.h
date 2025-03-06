@@ -70,6 +70,7 @@ namespace ORB_SLAM3 {
         GeometricCamera* camera2() {return calibration2_;}
         cv::Mat camera1DistortionCoef() {return cv::Mat(vPinHoleDistorsion1_.size(),1,CV_32F,vPinHoleDistorsion1_.data());}
         cv::Mat camera2DistortionCoef() {return cv::Mat(vPinHoleDistorsion2_.size(),1,CV_32F,vPinHoleDistorsion2_.data());}
+        // cv::Mat camera2DistortionCoef() {return cv::Mat(vPinHoleDistorsion2_.size(),1,CV_32F,vPinHoleDistorsion1_.data());}
 
         Sophus::SE3f Tlr() {return Tlr_;}
         float bf() {return bf_;}
@@ -121,6 +122,8 @@ namespace ORB_SLAM3 {
         cv::Mat M2l() {return M2l_;}
         cv::Mat M1r() {return M1r_;}
         cv::Mat M2r() {return M2r_;}
+
+        int get_imu_method() {return imu_method;}
 
     private:
         template<typename T>
@@ -227,6 +230,7 @@ namespace ORB_SLAM3 {
          * Other stuff
          */
         float thFarPoints_;
+        int imu_method;
 
     };
 };

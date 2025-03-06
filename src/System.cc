@@ -137,11 +137,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
             exit(-1);
         }
         cout << "Vocabulary loaded!" << endl << endl;
-        // }
-        // else
-        //     cout << "LC is deactive" << endl;
         
-
         //Create KeyFrame Database
         mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
 
@@ -156,8 +152,6 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
         mpVocabulary = new ORBVocabulary();
           
-        // if (activeLC)
-        // {
         bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
         if(!bVocLoad)
         {
@@ -166,9 +160,6 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
             exit(-1);
         }
         cout << "Vocabulary loaded!" << endl << endl;
-        // }
-        // else
-        //     cout << "LC is deactive" << endl;
 
         //Create KeyFrame Database
         mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);

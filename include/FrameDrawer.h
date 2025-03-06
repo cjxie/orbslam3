@@ -80,7 +80,6 @@ protected:
     vector<MapPoint*> mvpMatchedMPs;
     vector<cv::KeyPoint> mvOutlierKeys;
     vector<MapPoint*> mvpOutlierMPs;
-    vector<int> mvTracked, mvTrackedVO;
 
     map<long unsigned int, cv::Point2f> mmProjectPoints;
     map<long unsigned int, cv::Point2f> mmMatchedInImage;
