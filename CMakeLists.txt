@@ -55,11 +55,17 @@ find_package(realsense2)
 find_package(GTest REQUIRED)
 
 find_package(OpenMP)
-SET(TEST_OPENMP OFF CACHE BOOL "Build Orbslam with OpenMP support")
-if(OPENMP_FOUND AND TEST_OPENMP)
-   SET(USE_OPENMP 1)
-   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
+option(USE_OPENMP "Use OpenMP for parallelization" OFF)
+# include(config.cmake)
+
+if(OPENMP_FOUND AND USE_OPENMP)
+   add_compile_definitions(USE_OPENMP)
+   if(OpenMP_C_FOUND)
+      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+   endif()
+   if(OpenMP_CXX_FOUND)
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
+   endif()
    MESSAGE(STATUS "Compiler with OpenMP support")
 endif()
 
@@ -145,6 +151,10 @@ ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
 -lboost_serialization
 -lcrypto
 )
+
+if(OpenMP_FOUND AND USE_OPENMP)
+   target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
+endif()
 
 # If RealSense SDK is found the library is added and its examples compiled
 if(realsense2_FOUND)

@@ -138,9 +138,8 @@ namespace ORB_SLAM3
                             right++;
                         }
 
-                        nmatches++;
-                        left++;
-                        // }
+                         nmatches++;
+                         left++;
                     }
                 }
             }
@@ -232,10 +231,10 @@ namespace ORB_SLAM3
 
         const DBoW2::FeatureVector &vFeatVecKF = pKF->mFeatVec;
 
-        int nmatches=0;
+        int nmatches = 0;
 
         vector<int> rotHist[HISTO_LENGTH];
-        for(int i=0;i<HISTO_LENGTH;i++)
+        for(int i = 0; i < HISTO_LENGTH; i++)
             rotHist[i].reserve(500);
         const float factor = 1.0f/HISTO_LENGTH;
 
@@ -1079,6 +1078,7 @@ namespace ORB_SLAM3
                                                                         : (bestIdx2 < pKF2 -> NLeft) ? pKF2 -> mvKeys[bestIdx2]
                                                                                                      : pKF2 -> mvKeysRight[bestIdx2 - pKF2 -> NLeft];
                         vMatches12[idx1]=bestIdx2;
+
                         // (cj) minor bug fixed by horizon
                         // vbMatched2[bestIdx2]=true;
                         nmatches++;

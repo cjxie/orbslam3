@@ -2519,6 +2519,7 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
     // Basically, more edges are added, but # of edges are limited
     // Fixed KFs which are not covisible optimizable
     const int maxFixKF = 200;
+
     for(list<MapPoint*>::iterator lit=lLocalMapPoints.begin(), lend=lLocalMapPoints.end(); lit!=lend; lit++)
     {
         map<KeyFrame*,tuple<int,int>> observations = (*lit)->GetObservations();

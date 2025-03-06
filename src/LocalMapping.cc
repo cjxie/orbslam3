@@ -122,6 +122,8 @@ void LocalMapping::Run()
             int num_MPs_BA = 0;
             int num_edges_BA = 0;
 
+            bool debug = true;
+
             if(!CheckNewKeyFrames() && !stopRequested())
             {
                 if(mpAtlas->KeyFramesInMap()>2)
@@ -132,13 +134,13 @@ void LocalMapping::Run()
                         float dist = (mpCurrentKeyFrame->mPrevKF->GetCameraCenter() - mpCurrentKeyFrame->GetCameraCenter()).norm() +
                                 (mpCurrentKeyFrame->mPrevKF->mPrevKF->GetCameraCenter() - mpCurrentKeyFrame->mPrevKF->GetCameraCenter()).norm();
 
-                        if(dist>0.05)
+                        if (dist > 0.05)
                             mTinit += mpCurrentKeyFrame->mTimeStamp - mpCurrentKeyFrame->mPrevKF->mTimeStamp;
-                        if(!mpCurrentKeyFrame->GetMap()->GetIniertialBA2())
+                        if (!mpCurrentKeyFrame->GetMap()->GetIniertialBA2())
                         {
                             // ** (the choice of this condition is interesting) Visual-inertial initialization failed
                             // After 10 s, the map won't be reset anymore?
-                            if((mTinit<10.f) && (dist<0.02))
+                            if ((mTinit<10.f) && (dist<0.02))
                             {
                                 std::cout << "\nmTinit: " << mTinit << " dist: " << dist << std::endl;
                                 cout << "Not enough motion for initializing. Reseting..." << endl;
@@ -150,7 +152,12 @@ void LocalMapping::Run()
                             }
                         }
 
-			            // mono > 75, other > 100
+                        if (debug)
+                        {
+                            std::cout << "LocalInertialBA is called" << std::endl;
+                        }
+
+           		 // mono > 75, other > 100
                         bool bLarge = ((mpTracker->GetMatchesInliers()>75) && mbMonocular) ||
                                       ((mpTracker->GetMatchesInliers()>100) &&!mbMonocular);
                         Optimizer::LocalInertialBA(mpCurrentKeyFrame, &mbAbortBA,
@@ -162,6 +169,10 @@ void LocalMapping::Run()
                     else
                     {
                         // do Visual-only LBA， when imu is used but is not ready yet
+                        if (debug)
+                        {
+                            std::cout << "LocalBundleAdjustment is called" << std::endl;
+                        }
                         Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame, &mbAbortBA,
                                 mpCurrentKeyFrame->GetMap(),
                                 num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA);
@@ -175,10 +186,14 @@ void LocalMapping::Run()
 
                 if(b_doneLBA)
                 {
-                    std::cout << "At Frame " << mpCurrentKeyFrame->mnFrameId << ", " 
+                    if (debug)
+                    {
+                        std::cout << "At Frame " << mpCurrentKeyFrame->mnFrameId << ", " 
                             << num_OptKF_BA << " frames are optimized" << ", " 
                             << num_MPs_BA << " MPs are optimized" << ", " 
                             << num_edges_BA << " edges are created" << std::endl;
+                    }
+                    
                     timeLBA_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLBA - time_EndMPCreation).count();
                     vdLBA_ms.push_back(timeLBA_ms);
 
@@ -411,7 +426,7 @@ void LocalMapping::CreateNewMapPoints()
 
     // For most cases
     int nn = 10;
-    // For mono case
+    // For monocular
     if(mbMonocular)
         nn=30;
     vector<KeyFrame*> vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
@@ -1042,11 +1057,11 @@ void LocalMapping::KeyFrameCulling()
             {
                 // Don't cull if:
                 // - Too few keyframes (<=Nd)
-	            // - Too close to current frame (within 2 frames)
+                // - Too close to current frame (within 2 frames)
 
                 if (mpAtlas->KeyFramesInMap()<=Nd)
                     continue;
-		        // this frame is too close to current keyframe to be removed
+	        // this frame is too close to current keyframe to be removed
                 if(pKF->mnId>(mpCurrentKeyFrame->mnId-2))
                     continue;
 

@@ -1011,7 +1011,7 @@ void LoopClosing::CorrectLoop()
     mvpCurrentConnectedKFs = mpCurrentKF->GetVectorCovisibleKeyFrames();
     mvpCurrentConnectedKFs.push_back(mpCurrentKF);
 
-    std::cout << "Loop: number of connected KFs -> " + to_string(mvpCurrentConnectedKFs.size()) << std::endl;
+    //std::cout << "Loop: number of connected KFs -> " + to_string(mvpCurrentConnectedKFs.size()) << std::endl;
 
     KeyFrameAndPose CorrectedSim3, NonCorrectedSim3;
     CorrectedSim3[mpCurrentKF]=mg2oLoopScw;

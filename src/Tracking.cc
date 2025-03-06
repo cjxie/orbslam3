@@ -1926,11 +1926,13 @@ void Tracking::Track()
     // Get current indices for tracking map changes
     int nCurMapChangeIndex = pCurrentMap->GetMapChangeIndex();
     int nMapChangeIndex = pCurrentMap->GetLastMapChange();
+
     // Check if there have been new changes to the map
     if(nCurMapChangeIndex>nMapChangeIndex)
     {
         // Update the last change index to current
         pCurrentMap->SetLastMapChange(nCurMapChangeIndex);
+
         // Set flag indicating map was updated
         mbMapUpdated = true;
     }
@@ -1978,7 +1980,7 @@ void Tracking::Track()
         // Initial camera pose estimation using motion model or relocalization (if tracking is lost)
         if(!mbOnlyTracking) // True if local mapping is deactivated and we are performing only localization
         {
-
+            std::cout << "local mapping mode" << std::endl; 
             // State OK
             // Local Mapping is activated. This is the normal behaviour, unless
             // you explicitly activate the "only tracking" mode.
@@ -2047,6 +2049,7 @@ void Tracking::Track()
                     Verbose::PrintMess("Lost for a short time", Verbose::VERBOSITY_NORMAL);
 
                     bOK = true;
+                    // IMUEnabled Relocalization
                     if(isIMUEnabled)
                     {
                         if(pCurrentMap->isImuInitialized())
@@ -2063,9 +2066,9 @@ void Tracking::Track()
                             bOK=false;
                         }
                     }
+                    // Visual Relocalization
                     else
                     {
-                        // Relocalization
                         bOK = Relocalization();
                         //std::cout << "mCurrentFrame.mTimeStamp:" << to_string(mCurrentFrame.mTimeStamp) << std::endl;
                         //std::cout << "mTimeStampLost:" << to_string(mTimeStampLost) << std::endl;
@@ -2100,11 +2103,17 @@ void Tracking::Track()
             }
 
         }
+        // localization system handles two cases:
+        // 1. State is LOST: DO VISUAL RELOCALIZATION
+        // 2. State is others: DO TRACKING + (RELOCALIZATION)
+        //      if tracked enough MPs, perform frame-2-frame tracking
+        //      Otherwise, if fewer Mps has been tracked, do motion model tracking and RELOCALIZATION
         else
         {
             // Localization Mode: Local Mapping is deactivated (TODO Not available in inertial mode)
             // Do visual Relocalization and update tracking results correspondingly
             cout << "localization only mode" << endl;
+            // System is lost, do relocalization
             if(mState==LOST)
             {
                 if(isIMUEnabled)
@@ -2116,25 +2125,23 @@ void Tracking::Track()
                 // In last frame we tracked enough MapPoints in the map
                 if(!mbVO)
                 {
-                    
                     if(mbVelocity)
                     {
+                        
                         bOK = TrackWithMotionModel();
                     }
                     else
                     {
+                        
                         bOK = TrackReferenceKeyFrame();
                     }
                 }
                 // In last frame we tracked mainly "visual odometry" points.
+                // We compute two camera poses, one from motion model and one doing relocalization.
+                // If relocalization is sucessfull we choose that solution, otherwise we retain
+                // the "visual odometry" solution.
                 else
                 {
-                    
-
-                    // We compute two camera poses, one from motion model and one doing relocalization.
-                    // If relocalization is sucessfull we choose that solution, otherwise we retain
-                    // the "visual odometry" solution.
-
                     bool bOKMM = false;
                     bool bOKReloc = false;
                     vector<MapPoint*> vpMPsMM;
@@ -2800,6 +2807,7 @@ void Tracking::CheckReplacedInLastFrame()
 
 bool Tracking::TrackReferenceKeyFrame()
 {
+    std::cout << "      TRACK: Track with respect to the reference KF " << std::endl;
     // Compute Bag of Words vector
     mCurrentFrame.ComputeBoW();
 
@@ -2818,9 +2826,6 @@ bool Tracking::TrackReferenceKeyFrame()
 
     mCurrentFrame.mvpMapPoints = vpMapPointMatches;
     mCurrentFrame.SetPose(mLastFrame.GetPose());
-
-    //mCurrentFrame.PrintPointDistribution();
-
 
     // cout << " TrackReferenceKeyFrame mLastFrame.mTcw:  " << mLastFrame.mTcw << endl;
     Optimizer::PoseOptimization(&mCurrentFrame);
@@ -2934,6 +2939,7 @@ void Tracking::UpdateLastFrame()
 
 bool Tracking::TrackWithMotionModel()
 {
+    std::cout << "      TRACK: Track with motion model" << std::endl;
     ORBmatcher matcher(0.9,true);
 
     // Update last frame pose according to its reference keyframe
@@ -3279,7 +3285,7 @@ bool Tracking::NeedNewKeyFrame()
     if ((((mnMatchesInliers<75) && (mnMatchesInliers>15)) || mState==RECENTLY_LOST) && (mSensor == System::IMU_MONOCULAR)) 
         c4=true;
     else
-        c4=false; 
+        c4=false;
 
     if(((c1a||c1b||c1c) && c2)||c3 ||c4)
     {
