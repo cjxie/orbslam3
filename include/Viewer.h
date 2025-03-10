@@ -93,6 +93,7 @@ private:
     std::mutex mMutexStop;
 
     bool mbStopTrack;
+    Settings* mpSettings;
 
 };
 

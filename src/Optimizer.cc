@@ -1171,7 +1171,6 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             if(pMP)
                 if(!pMP->isBad() && pMP->GetMap() == pCurrentMap)
                 {
-
                     if(pMP->mnBALocalForKF!=pKF->mnId)
                     {
                         lLocalMapPoints.push_back(pMP);
@@ -1217,8 +1216,10 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
     g2o::BlockSolver_6_3 * solver_ptr = new g2o::BlockSolver_6_3(linearSolver);
 
     g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
-    if (pMap->IsInertial())
-        solver->setUserLambdaInit(100.0);
+    
+    // (shijie) why are these lines uncommented? Because this function is LBA for visual only system
+    //if (pMap->IsInertial())
+    //    solver->setUserLambdaInit(100.0);
 
     optimizer.setAlgorithm(solver);
     optimizer.setVerbose(false);
@@ -1240,7 +1241,16 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         Sophus::SE3<float> Tcw = pKFi->GetPose();
         vSE3->setEstimate(g2o::SE3Quat(Tcw.unit_quaternion().cast<double>(), Tcw.translation().cast<double>()));
         vSE3->setId(pKFi->mnId);
-        vSE3->setFixed(pKFi->mnId==pMap->GetInitKFid());
+
+	// (shijie) make it more robust?
+	// vSE3->setFixed(pKFi->mnId==pMap->GetInitKFid());
+        if (pKFi->mnId==pMap->GetInitKFid())
+            vSE3->setFixed(true);
+        else if (lFixedCameras.size() == 0 && pMap->GetOriginKF()->mNextKF->mnId == pKFi->mnId && lLocalKeyFrames.size() < 10)
+            vSE3->setFixed(true);
+        else 
+            vSE3->setFixed(false);
+
         optimizer.addVertex(vSE3);
         if(pKFi->mnId>maxKFid)
             maxKFid=pKFi->mnId;
@@ -5637,6 +5647,104 @@ void Optimizer::OptimizeEssentialGraph4DoF(Map* pMap, KeyFrame* pLoopKF, KeyFram
         pMP->UpdateNormalAndDepth();
     }
     pMap->IncreaseChangeIndex();
+}
+
+bool Optimizer::InertialOptimization(Map *pMap, Eigen::Vector3d &bg, float priorG)
+{
+    int its = 20; // Check number of iterations
+    const vector<KeyFrame*> vpKFs = pMap->GetAllKeyFrames();
+
+    // Setup optimizer
+    g2o::SparseOptimizer optimizer;
+    g2o::BlockSolverX::LinearSolverType * linearSolver;
+
+    linearSolver = new g2o::LinearSolverEigen<g2o::BlockSolverX::PoseMatrixType>();
+
+    g2o::BlockSolverX * solver_ptr = new g2o::BlockSolverX(linearSolver);
+
+    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
+    optimizer.setAlgorithm(solver);
+
+    /*
+    // Setup optimizer
+    g2o::SparseOptimizer optimizer;
+    g2o::BlockSolverX::LinearSolverType * linearSolver;
+
+    linearSolver = new g2o::LinearSolverEigen<g2o::BlockSolverX::PoseMatrixType>();
+
+    g2o::BlockSolverX * solver_ptr = new g2o::BlockSolverX(linearSolver);
+
+    g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton(solver_ptr);
+    optimizer.setAlgorithm(solver);
+    */
+
+    // Biases
+    VertexGyroBias* VG = new VertexGyroBias(vpKFs.back());
+    VG->setId(0);
+    VG->setFixed(false);
+    optimizer.addVertex(VG);
+
+    // prior acc bias
+    Eigen::Vector3f bprior;
+    bprior.setZero();
+
+    EdgePriorGyro* epg = new EdgePriorGyro(bprior);
+    epg->setVertex(0,dynamic_cast<g2o::OptimizableGraph::Vertex*>(VG));
+    double infoPriorG = priorG;
+    epg->setInformation(infoPriorG*Eigen::Matrix3d::Identity());
+    optimizer.addEdge(epg);
+
+    int cnt = 0;
+    for (int i = 0; i < vpKFs.size(); i++)
+    {
+        KeyFrame* pKF1 = vpKFs[i]->mPrevKF;
+        KeyFrame* pKF2 = vpKFs[i];
+
+        if (!pKF1 || !pKF2)
+        {
+            cnt += 1;
+            continue;
+        }
+
+        IMU::Preintegrated* pInt12 = pKF2->mpImuPreintegrated;
+        if(!pInt12)
+        {
+            cnt += 1;
+            continue;
+        }
+        
+        // pKF2->mpImuPreintegrated->SetNewBias(pKF1->GetImuBias());
+
+        //g2o::HyperGraph::Vertex* VG = optimizer.vertex(1);
+
+        EdgeGyro* ei = new EdgeGyro(pInt12, pKF1->GetImuRotation().cast<double>(), pKF2->GetImuRotation().cast<double>());
+        ei->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(VG));
+
+        optimizer.addEdge(ei);
+    }
+
+    if (cnt > (vpKFs.size()-3))
+        return false;
+    
+    // Compute error for different scales
+    optimizer.setVerbose(false);
+    optimizer.initializeOptimization();
+    optimizer.computeActiveErrors();
+    float err = optimizer.activeRobustChi2();
+    optimizer.optimize(its);
+    optimizer.computeActiveErrors();
+    float err_end = optimizer.activeRobustChi2();
+
+    // TODO: Some convergence problems have been detected here
+    if(2*err < err_end || isnan(err) || isnan(err_end)) 
+    {
+        cout << "FAIL LOCAL-INERTIAL BA!!!!" << endl;
+        bg.setZero();
+        return false;
+    }
+
+    bg << VG->estimate();
+    return true;
 }
 
 } //namespace ORB_SLAM

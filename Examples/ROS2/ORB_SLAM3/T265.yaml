@@ -90,7 +90,7 @@ IMU.Frequency: 200.0
 #--------------------------------------------------------------------------------------------
 
 # ORB Extractor: Number of features per image
-ORBextractor.nFeatures: 1000 # Tested with 1250
+ORBextractor.nFeatures: 1500 # Tested with 1250
 
 # ORB Extractor: Scale factor between levels in the scale pyramid 	
 ORBextractor.scaleFactor: 1.2
@@ -105,6 +105,7 @@ ORBextractor.nLevels: 8
 ORBextractor.iniThFAST: 15
 ORBextractor.minThFAST: 7
 
+ORBextractor.useNeon: 0
 #--------------------------------------------------------------------------------------------
 # Viewer Parameters
 #--------------------------------------------------------------------------------------------

@@ -327,58 +327,65 @@ namespace ORB_SLAM3
 
                     }
 
-                    if(bestDist1 <= TH_LOW) {
-                      if(static_cast<float>(bestDist1)<mfNNratio*static_cast<float>(bestDist2)) {
-                          vpMapPointMatches[bestIdxF] = pMP;
-                          const cv::KeyPoint &kp =
-                                  (!pKF->mpCamera2) ? pKF->mvKeysUn[realIdxKF] :
-                                  (realIdxKF >= pKF -> NLeft) ? pKF -> mvKeysRight[realIdxKF - pKF -> NLeft]
-                                                              : pKF -> mvKeys[realIdxKF];
-                          if (mbCheckOrientation) {
-                            cv::KeyPoint &Fkp =
-                                    (!pKF->mpCamera2 || F.Nleft == -1) ? F.mvKeys[bestIdxF] :
-                                    (bestIdxF >= F.Nleft) ? F.mvKeysRight[bestIdxF - F.Nleft]
-                                                          : F.mvKeys[bestIdxF];
-
-                            float rot = kp.angle-Fkp.angle;
-                            if(rot < 0.0)
-                                rot += 360.0f;
-                            int bin = round(rot*factor);
-                            if(bin == HISTO_LENGTH)
-                                bin = 0;
-                            assert(bin >= 0 && bin < HISTO_LENGTH);
-                            rotHist[bin].push_back(bestIdxF);
-                          }
-                          nmatches++;
-                        }
-
-                        if (bestDist1R <= TH_LOW) 
+                    if(bestDist1<=TH_LOW)
+                    {
+                        if(static_cast<float>(bestDist1)<mfNNratio*static_cast<float>(bestDist2))
                         {
-                          if (static_cast<float>(bestDist1R) < mfNNratio * static_cast<float>(bestDist2R) || true) 
-                          {
-                            vpMapPointMatches[bestIdxFR]=pMP;
+                            vpMapPointMatches[bestIdxF]=pMP;
+
                             const cv::KeyPoint &kp =
                                     (!pKF->mpCamera2) ? pKF->mvKeysUn[realIdxKF] :
                                     (realIdxKF >= pKF -> NLeft) ? pKF -> mvKeysRight[realIdxKF - pKF -> NLeft]
                                                                 : pKF -> mvKeys[realIdxKF];
-                            if (mbCheckOrientation) 
-                            {
-                              cv::KeyPoint &Fkp =
-                                      (!F.mpCamera2) ? F.mvKeys[bestIdxFR] :
-                                      (bestIdxFR >= F.Nleft) ? F.mvKeysRight[bestIdxFR - F.Nleft]
-                                                             : F.mvKeys[bestIdxFR];
 
-                              float rot = kp.angle-Fkp.angle;
-                              if (rot < 0.0)
-                                  rot += 360.0f;
-                              int bin = round(rot * factor);
-                              if (bin == HISTO_LENGTH)
-                                  bin=0;
-                              assert(bin >= 0 && bin < HISTO_LENGTH);
-                              rotHist[bin].push_back(bestIdxFR);
+                            if(mbCheckOrientation)
+                            {
+                                cv::KeyPoint &Fkp =
+                                        (!pKF->mpCamera2 || F.Nleft == -1) ? F.mvKeys[bestIdxF] :
+                                        (bestIdxF >= F.Nleft) ? F.mvKeysRight[bestIdxF - F.Nleft]
+                                                              : F.mvKeys[bestIdxF];
+
+                                float rot = kp.angle-Fkp.angle;
+                                if(rot<0.0)
+                                    rot+=360.0f;
+                                int bin = round(rot*factor);
+                                if(bin==HISTO_LENGTH)
+                                    bin=0;
+                                assert(bin>=0 && bin<HISTO_LENGTH);
+                                rotHist[bin].push_back(bestIdxF);
                             }
                             nmatches++;
-                          }
+                        }
+
+                        if(bestDist1R<=TH_LOW)
+                        {
+                            if(static_cast<float>(bestDist1R)<mfNNratio*static_cast<float>(bestDist2R) || true)
+                            {
+                                vpMapPointMatches[bestIdxFR]=pMP;
+
+                                const cv::KeyPoint &kp =
+                                        (!pKF->mpCamera2) ? pKF->mvKeysUn[realIdxKF] :
+                                        (realIdxKF >= pKF -> NLeft) ? pKF -> mvKeysRight[realIdxKF - pKF -> NLeft]
+                                                                    : pKF -> mvKeys[realIdxKF];
+
+                                if(mbCheckOrientation)
+                                {
+                                    cv::KeyPoint &Fkp =
+                                            (!F.mpCamera2) ? F.mvKeys[bestIdxFR] :
+                                            (bestIdxFR >= F.Nleft) ? F.mvKeysRight[bestIdxFR - F.Nleft]
+                                                                   : F.mvKeys[bestIdxFR];
+
+                                    float rot = kp.angle-Fkp.angle;
+                                    if(rot<0.0)
+                                        rot+=360.0f;
+                                    int bin = round(rot*factor);
+                                    if(bin==HISTO_LENGTH)
+                                        bin=0;
+                                    assert(bin>=0 && bin<HISTO_LENGTH);
+                                    rotHist[bin].push_back(bestIdxFR);
+                                }
+                                nmatches++;
+                            }
                         }
                     }
 

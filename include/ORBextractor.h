@@ -22,7 +22,6 @@
 #include <vector>
 #include <list>
 #include <opencv2/opencv.hpp>
-#include "Settings.h"
 
 using namespace cv;
 using namespace std;

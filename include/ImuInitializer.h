@@ -19,42 +19,26 @@
 #ifndef IMUINITIALIZER_H
 #define IMUINITIALIZER_H
 
-// Recipie of ORB-SLAM
-// init_recipie(
-//     solve_gyro_bias,
-//     solve_scale_given_gravity,
-//     solve_gravity_scale,
-//     skip,
-//     refine_scale_ba_via_gravity);
+
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
 
 #include "ImuTypes.h"
-#include "Frame.h"
-#include "MapPoint.h"
-#include "ORBVocabulary.h"
-#include "KeyFrameDatabase.h"
-#include "ORBextractor.h"
-#include "ORBmatcher.h"
-#include "Settings.h"
-#include "GeometricCamera.h"
+#include "KeyFrame.h"
 
 namespace ORB_SLAM3
 {
 
-class Frame;
-class MapPoint;
-class Settings;
+class KeyFrame;
+
 
 class ImuInitializer {
   public:
-    ImuInitializer(std::vector<Frame>& frames, Settings *settings);
+    ImuInitializer(std::vector<KeyFrame*>& kfs, Eigen::Vector3f bg);
     ~ImuInitializer();
 
-    //bool init_sfm();
-    bool sfm_check(Frame& F1, Frame& F2);
     bool init_imu();
     void preintegrate();
 
@@ -66,8 +50,6 @@ class ImuInitializer {
     void solve_scale_ba_given_gravity(); 
     void refine_scale_ba_via_gravity(); 
 
-    void reset_states();
-
     Eigen::Matrix<float, 3, 2> s2_tangential_basis(Eigen::Vector3f &x);
 
     //void apply_init();
@@ -77,14 +59,12 @@ class ImuInitializer {
     //IMU::Bias imuBias;
     Eigen::Vector3f ba, bg, gravity;
     float scale;
-    std::vector<Eigen::Vector3f> velocities;
-    std::vector<Frame> frames;
-    Settings *settings;
-    GeometricCamera* camera;
-    std::vector<cv::Point3f> iniP3D;
+    std::vector<KeyFrame*> kfs;
+    std::vector<std::shared_ptr<ORB_SLAM3::IMU::Preintegrated>> imuPres;
+
     //Eigen::Vector3f gravity;
     //Eigen::Vector3f mVw;
-    float PVIO_GRAVITY_NOMINAL;
+    float GRAVITY_NOMINAL;
 
 };
 

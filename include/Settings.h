@@ -21,7 +21,7 @@
 
 
 // Flag to activate the measurement of time in each process (track,localmap, place recognition).
-#define REGISTER_TIMES
+// #define REGISTER_TIMES
 
 #include "CameraModels/GeometricCamera.h"
 
@@ -123,6 +123,11 @@ namespace ORB_SLAM3 {
         cv::Mat M1r() {return M1r_;}
         cv::Mat M2r() {return M2r_;}
 
+        void set_imu_method(int method) {
+            if (method > 2 || method < 0)
+                method = 0;
+            imu_method = method;
+        }
         int get_imu_method() {return imu_method;}
 
     private:
